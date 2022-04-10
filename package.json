@@ -16,7 +16,7 @@
         "url": "https://github.com/Setsugennoao/vapoursynth-ts"
     },
     "author": "Setsugennoao <setsugen@setsugen.dev>",
-    "license": "MIT",
+    "license": "GPL",
     "engines": {
         "node": ">=8.5",
         "npm": ">=6.0",
