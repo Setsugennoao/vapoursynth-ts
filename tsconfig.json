@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "CommonJS",
+        "target": "ES5",
+        "lib": [
+            "dom",
+            "es2018"
+        ],
+        "strict": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "jsx": "react",
+        "sourceMap": true,
+        "stripInternal": true,
+        "declaration": true,
+        "declarationMap": true,
+        "declarationDir": "dist",
+        "outDir": "dist",
+        "resolveJsonModule": true,
+        "importHelpers": true,
+        "plugins": [{
+            "name": "typescript-tslint-plugin",
+            "alwaysShowRuleFailuresAsWarnings": false
+        }]
+    },
+    "include": [
+        "./src"
+    ],
+    "compileOnSave": false
+}
