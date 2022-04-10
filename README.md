@@ -1,4 +1,4 @@
-# TypeScript library for VapourSynth
+# TypeScript bindings for VapourSynth
 
 ## Installation
 
