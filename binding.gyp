@@ -22,7 +22,7 @@
         {
             'target_name': 'vapoursynthts',
             'sources': [
-                "./src/lib/core.cpp", "./src/lib/pyscript.cpp",
+                "./src/lib/core.cpp", "./src/lib/pyscript.cpp", "./src/lib/formats.cpp",
                 "./src/lib/function.cpp", "./src/lib/plugin.cpp", "./src/lib/nodes.cpp"
             ],
             'cflags_cc!': ['-fno-exceptions'],
