@@ -20,51 +20,17 @@
     ],
     'targets': [
         {
-            'target_name': 'core',
-            'sources': ["./src/lib/core.cpp", "./src/lib/function.cpp", "./src/lib/plugin.cpp", "./src/lib/nodes.cpp"],
-            'cflags!': ['-fno-exceptions'],
+            'target_name': 'vapoursynthts',
+            'sources': [
+                "./src/lib/core.cpp", "./src/lib/pyscript.cpp",
+                "./src/lib/function.cpp", "./src/lib/plugin.cpp", "./src/lib/nodes.cpp"
+            ],
             'cflags_cc!': ['-fno-exceptions'],
             'conditions': [
                 ["OS=='win'", {
-                    'libraries': [
-                        '-l<(VS_Lib)/vapoursynth.lib',
-                        '-l<(VS_Lib)/vsscript.lib'
-                    ]
+                    'libraries': ['-l<(VS_Lib)/vapoursynth.lib', '-l<(VS_Lib)/vsscript.lib']
                 }, {
-                    'libraries': [
-                        '-lvapoursynth',
-                        '-lvsscript'
-                    ]
-                }]
-            ],
-            'include_dirs': [
-                '<(VS_SDK)/include/vapoursynth',
-                '<!@(node -p "require(\'node-addon-api\').include")'
-            ],
-            'dependencies': [
-                '<!(node -p "require(\'node-addon-api\').gyp")'
-            ],
-            'defines': ['NAPI_DISABLE_CPP_EXCEPTIONS'],
-            'msvs_settings': {
-                'VCCLCompilerTool': {'ExceptionHandling': 1},
-            }
-        },
-        {
-            'target_name': 'pyscript',
-            'sources': ["./src/lib/pyscript.cpp"],
-            'cflags!': ['-fno-exceptions'],
-            'cflags_cc!': ['-fno-exceptions'],
-            'conditions': [
-                ["OS=='win'", {
-                    'libraries': [
-                        '-l<(VS_Lib)/vapoursynth.lib',
-                        '-l<(VS_Lib)/vsscript.lib'
-                    ]
-                }, {
-                    'libraries': [
-                        '-lvapoursynth',
-                        '-lvsscript'
-                    ]
+                    'libraries': ['-lvapoursynth', '-lvsscript']
                 }]
             ],
             'include_dirs': [
