@@ -278,6 +278,7 @@ Napi::Object Core::VSMapToObject(Napi::Env env, VSMap *vsmap) {
 Napi::Object Register(Napi::Env env, Napi::Object exports) {
     RawNode::Init(env, exports);
     RawFrame::Init(env, exports);
+    // FrameProps::Init(env, exports);
 
     VideoFormat::Init(env, exports);
     VideoNode::Init(env, exports);

@@ -129,10 +129,18 @@ const PluginProxy = (plugin: PluginIP, injected_arg: null | VideoNodeIP | AudioN
 export const CoreProxy = (
     coreCreationFlags: Int = 0,
     core: CoreIP = new _Core(coreCreationFlags, {
-        Core: CoreProxy,
-        Plugin: PluginProxy,
-        Function: FunctionProxy,
+        // RawNode: ,
+        // RawFrame: ,
+        // FrameProps: ,
+        // VideoFormat: ,
         VideoNode: VideoNodeProxy,
+        // VideoFrame: ,
+        // AudioFormat: ,
+        // AudioNode: ,
+        // AudioFrame: ,
+        Function: FunctionProxy,
+        Plugin: PluginProxy,
+        Core: CoreProxy,
     })
 ) => {
     const _coreInstance = (<unknown>createProxy({
