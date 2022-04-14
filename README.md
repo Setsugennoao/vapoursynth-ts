@@ -10,20 +10,19 @@ yarn add vapoursynth-ts
 ## Getting started
 
 ```ts
-import { readFileSync } from 'fs'
 import { core, PyScript } from 'vapoursynth-ts'
 
 // Like you would in the Python bindings
 const source = core.lsmas.LibavSMASHSource('./haruhi_01.mkv')
 
 // can also import a Python script
-const myscript = new PyScript(readFileSync('./haruhi_01.vpy'))
-const myscript2 = new PyScript(readFileSync('./haruhi_01v2.vpy'))
+const myscript = new PyScript('./haruhi_01.vpy')
+const myscript2 = new PyScript('./haruhi_01v2.vpy')
 
 // Boring!!
 const comp = core.std.StackVertical([
-    myscript.getOutput(0),
-    myscript2.getOutput(0)
+    myscript.getOutput(0).clip,
+    myscript2.getOutput(0).clip
 ])
 
 // Way better 👍
