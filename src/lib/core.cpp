@@ -5,6 +5,8 @@
 
 #include "formats.hpp"
 
+#include "./frames/rawframe.hpp"
+
 #include "./nodes/rawnode.hpp"
 #include "./nodes/videonode.hpp"
 
@@ -196,6 +198,14 @@ void Core::SetMaxCacheSize(const Napi::CallbackInfo &info, const Napi::Value &va
     vsapi->setMaxCacheSize(newvalue * 1024 * 1024, vscore);
 }
 
+Napi::Object Core::queryVideoFormat(VSColorFamily colorFamily, VSSampleType sampleType, int bitsPerSample, int subsamplingW, int subsamplingH) {
+    return Napi::Object::Object({});
+}
+
+Napi::Object Core::getVideoFormat(uint32_t id) {
+    return Napi::Object::Object({});
+}
+
 Napi::Value Core::GetVideoFormat(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
@@ -267,7 +277,7 @@ Napi::Object Core::VSMapToObject(Napi::Env env, VSMap *vsmap) {
 
 Napi::Object Register(Napi::Env env, Napi::Object exports) {
     RawNode::Init(env, exports);
-    // RawFrame::Init(env, exports);
+    RawFrame::Init(env, exports);
 
     VideoFormat::Init(env, exports);
     VideoNode::Init(env, exports);
