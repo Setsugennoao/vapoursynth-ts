@@ -1,3 +1,5 @@
+#include "../formats.hpp"
+
 #include "videonode.hpp"
 
 /**********************************************************************************************************************/
@@ -160,7 +162,7 @@ Napi::Value VideoNode::GetFormat(const Napi::CallbackInfo &info) {
         return env.Null();
     }
 
-    return Napi::Value::From(env, vsvideoinfo->numFrames);
+    return VideoFormat::CreateVideoFormat(node->core, &vsvideoinfo->format);
 }
 
 Napi::Value VideoNode::GetNumFrames(const Napi::CallbackInfo &info) {

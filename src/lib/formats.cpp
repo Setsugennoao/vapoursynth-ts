@@ -15,12 +15,12 @@ Napi::Object VideoFormat::Init(Napi::Env env, Napi::Object exports) {
 
 VideoFormat::VideoFormat(const Napi::CallbackInfo &info) : Napi::ObjectWrap<VideoFormat>(info) {}
 
-void VideoFormat::SetVideoFormat(Core *core, VSVideoFormat *vsvformat) {
+void VideoFormat::SetVideoFormat(Core *core, const VSVideoFormat *vsvformat) {
     this->core = core;
     this->vsvformat = vsvformat;
 }
 
-Napi::Object VideoFormat::CreateVideoFormat(Core *core, VSVideoFormat *vsvformat) {
+Napi::Object VideoFormat::CreateVideoFormat(Core *core, const VSVideoFormat *vsvformat) {
     Napi::Object formatObject = constructor->New({});
     VideoFormat *format = VideoFormat::Unwrap(formatObject);
     format->SetVideoFormat(core, vsvformat);
@@ -41,7 +41,7 @@ Napi::Value VideoFormat::ToObject(const Napi::CallbackInfo &info) {
 
     Napi::Object videoFormatObj = Napi::Object::New(env);
 
-    VSVideoFormat f = *vsvformat;
+    const VSVideoFormat f = *vsvformat;
 
     videoFormatObj.Set("id", Napi::Value::From(
         env, core->vsapi->queryVideoFormatID(
