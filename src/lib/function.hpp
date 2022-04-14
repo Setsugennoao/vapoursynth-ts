@@ -1,7 +1,8 @@
 #pragma once
 
-#include "nodes.hpp"
 #include "plugin.hpp"
+
+#include "./nodes/videonode.hpp"
 
 class Function : public Napi::ObjectWrap<Function> {
   public:

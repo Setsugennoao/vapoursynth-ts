@@ -1,8 +1,12 @@
 #include "core.hpp"
 
-#include "function.hpp"
-#include "nodes.hpp"
 #include "plugin.hpp"
+#include "function.hpp"
+
+#include "formats.hpp"
+
+#include "./nodes/rawnode.hpp"
+#include "./nodes/videonode.hpp"
 
 Napi::Object Core::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "Core", {
