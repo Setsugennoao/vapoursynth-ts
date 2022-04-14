@@ -20,6 +20,4 @@ class RawNode : public Napi::ObjectWrap<RawNode> {
 
     Core *core{nullptr};
     VSNode *vsnode{nullptr};
-
-  private:
 };

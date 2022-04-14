@@ -41,7 +41,9 @@ class Core : public Napi::ObjectWrap<Core> {
     Napi::Value GetMaxCacheSize(const Napi::CallbackInfo &);
     void SetMaxCacheSize(const Napi::CallbackInfo &, const Napi::Value &);
 
+    Napi::Object queryVideoFormat(VSColorFamily colorFamily, VSSampleType sampleType, int bitsPerSample, int subsamplingW, int subsamplingH);
     Napi::Value QueryVideoFormat(const Napi::CallbackInfo &);
+    Napi::Object getVideoFormat(uint32_t id);
     Napi::Value GetVideoFormat(const Napi::CallbackInfo &);
 
     Napi::Value GetOutput(const Napi::CallbackInfo &);

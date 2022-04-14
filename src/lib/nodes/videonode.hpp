@@ -24,7 +24,6 @@ class VideoNode : public Napi::ObjectWrap<VideoNode> {
     const VSVideoInfo *vsvideoinfo{nullptr};
 
   private:
-
     Napi::Value GetCore(const Napi::CallbackInfo &);
 
     Napi::Value GetWidth(const Napi::CallbackInfo &);
