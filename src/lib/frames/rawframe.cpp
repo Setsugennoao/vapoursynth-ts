@@ -20,9 +20,21 @@ Napi::Object RawFrame::Init(Napi::Env env, Napi::Object exports) {
 
 RawFrame::RawFrame(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RawFrame>(info) {}
 
-void RawFrame::SetRawNode(Core *core, VSFrame *vsframe, int flags) {
+void RawFrame::SetRawNode(Core *core, VSFrame *vsframe, bool writable) {
     this->core = core;
-    this->vsframe = vsframe;
+
+    if (this->vsframe) core->vsapi->freeFrame(this->vsframe);
+    if (this->constvsframe) core->vsapi->freeFrame(this->constvsframe);
+
+    if (writable) {
+        this->vsframe = vsframe;
+        this->constvsframe = vsframe;
+        this->flags = -1;
+    } else {
+        this->vsframe = nullptr;
+        this->constvsframe = vsframe;
+        this->flags = 0;
+    }
 }
 
 Napi::FunctionReference *RawFrame::constructor;
