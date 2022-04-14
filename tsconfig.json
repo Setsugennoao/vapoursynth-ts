@@ -20,6 +20,10 @@
             "name": "typescript-tslint-plugin",
             "alwaysShowRuleFailuresAsWarnings": true,
         }],
+        "typeRoots": [
+            "./node_modules/@types",
+            "./src/types"
+        ],
         "downlevelIteration": true,
         "incremental": true,
         "tsBuildInfoFile": ".tsbuildinfo"
