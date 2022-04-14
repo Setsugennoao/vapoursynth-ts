@@ -106,3 +106,4 @@ dist
 
 build/*
 dist/*
+src/__tests__/test.raw
