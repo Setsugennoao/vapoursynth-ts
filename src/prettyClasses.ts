@@ -1,36 +1,37 @@
 import { getAttributes } from './utils'
 
 class Core {
+    [k: string]: any
+
     constructor(obj: any) {
-        Object.assign(
-            this,
-            getAttributes(obj, [
-                // 'version',
-                // 'numThreads',
-                // 'maxCacheSize',
-                // 'queryVideoFormat',
-                // 'getVideoFormat',
-                ...obj.plugins,
-            ])
-        )
+        Object.assign(this, getAttributes(obj, ['version', 'numThreads', 'maxCacheSize']))
     }
 }
 
 class Plugin {
+    [k: string]: any
+
     constructor(obj: any) {
         Object.assign(this, getAttributes(obj, ['namespace', 'description', ...obj.functions]))
     }
 }
 
 class Function {
+    [k: string]: any
+
     constructor(obj: any) {
         Object.assign(this, getAttributes(obj, ['namespace', 'description', ...obj.functions]))
     }
 }
 
 class VideoNode {
+    [k: string]: any
+
     constructor(obj: any) {
-        Object.assign(this, getAttributes(obj, ['width', 'height', 'numFrames', 'fps']))
+        Object.assign(this, getAttributes(obj, ['numFrames']))
+        for (const key of ['format', 'width', 'height', 'fps']) {
+            this[key] = obj[key] || 'dynamic'
+        }
     }
 }
 
