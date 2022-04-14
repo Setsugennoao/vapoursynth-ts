@@ -199,23 +199,58 @@ void Core::SetMaxCacheSize(const Napi::CallbackInfo &info, const Napi::Value &va
 }
 
 Napi::Object Core::queryVideoFormat(VSColorFamily colorFamily, VSSampleType sampleType, int bitsPerSample, int subsamplingW, int subsamplingH) {
-    return Napi::Object::Object({});
+    VSVideoFormat *vsformat{nullptr};
+
+    if (!vsapi->queryVideoFormat(vsformat, colorFamily, sampleType, bitsPerSample, subsamplingW, subsamplingH, vscore)) {
+        Napi::Error::New(Env(), "Invalid format properties specified!").ThrowAsJavaScriptException();
+        return Env().Null().As<Napi::Object>();
+    }
+
+    return VideoFormat::CreateVideoFormat(this, vsformat);
 }
 
 Napi::Object Core::getVideoFormat(uint32_t id) {
-    return Napi::Object::Object({});
+    VSVideoFormat *vsformat{nullptr};
+    if (!vsapi->getVideoFormatByID(vsformat, id, vscore)) {
+        Napi::Error::New(Env(), "Invalid format id specified!").ThrowAsJavaScriptException();
+        return Env().Null().As<Napi::Object>();
+    }
+    return VideoFormat::CreateVideoFormat(this, vsformat);
 }
 
 Napi::Value Core::GetVideoFormat(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    return Napi::Object::New(env);
+    if (info.Length() != 1 || !info[0].IsNumber()) {
+        Napi::Error::New(Env(), "Format id has to be a number!").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    return getVideoFormat(info[0].As<Napi::Number>().Uint32Value());
 }
 
 Napi::Value Core::QueryVideoFormat(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    return Napi::Object::New(env);
+    if (info.Length() != 5) {
+        Napi::Error::New(env, "Wrong number of arguments!").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    int args[5]{};
+
+    for (int i = 0; i < 5; i++) {
+        if (!info[i].IsNumber()) {
+            Napi::Error::New(env, "ColorFamily, sampleType and bitsPerSample have to be numbers!").ThrowAsJavaScriptException();
+            return env.Null();
+        } else if (i == 3 || i == 4) {
+            args[i] = 0;
+        } else {
+            args[i] = info[i].As<Napi::Number>().Uint32Value();
+        }
+    }
+
+    return queryVideoFormat((VSColorFamily)args[0], (VSSampleType)args[1], args[2], args[3], args[4]);
 }
 
 Napi::Value Core::GetOutput(const Napi::CallbackInfo &info) {
