@@ -96,6 +96,12 @@
         "xstddef": "cpp",
         "xstring": "cpp",
         "xtr1common": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "csignal": "cpp",
+        "cstdarg": "cpp",
+        "any": "cpp",
+        "codecvt": "cpp",
+        "future": "cpp",
+        "shared_mutex": "cpp"
     }
 }
