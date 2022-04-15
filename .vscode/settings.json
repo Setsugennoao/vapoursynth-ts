@@ -103,6 +103,8 @@
         "codecvt": "cpp",
         "future": "cpp",
         "shared_mutex": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "coroutine": "cpp",
+        "resumable": "cpp"
     }
 }
