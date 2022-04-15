@@ -9,7 +9,7 @@ class Plugin : public Napi::ObjectWrap<Plugin> {
     ~Plugin();
 
     void SetPlugin(Core *core, VSPlugin *vsplugin);
-    Napi::Object Plugin::GetPluginObject();
+    Napi::Object GetPluginObject();
 
     static Napi::Object CreatePlugin(Core *core, VSPlugin *vsplugin);
 
