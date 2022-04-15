@@ -12,8 +12,8 @@
         "stripInternal": true,
         "declaration": true,
         "declarationMap": true,
-        "declarationDir": "dist",
-        "outDir": "dist",
+        "declarationDir": "dist/esm5/types",
+        "outDir": "dist/esm5",
         "resolveJsonModule": true,
         "importHelpers": true,
         "plugins": [{
