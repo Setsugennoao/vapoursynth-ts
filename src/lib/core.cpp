@@ -253,14 +253,23 @@ Napi::Value Core::QueryVideoFormat(const Napi::CallbackInfo &info) {
     return queryVideoFormat((VSColorFamily)args[0], (VSSampleType)args[1], args[2], args[3], args[4]);
 }
 
+void Core::setOutput(int index, Napi::Object value) {
+    outputs.Set(index, value);
+}
+
 Napi::Value Core::GetOutput(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
+    if (info.Length() != 1 || !info[0].IsNumber()) {
+        Napi::Error::New(Env(), "Index has to be a number!").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
     int index = info[0].As<Napi::Number>().Int32Value();
 
-    Napi::Object outputObject = Napi::Object::New(env);
-
     if (pyscript) {
+        Napi::Object outputObject = Napi::Object::New(env);
+
         VSNode *vsnode = pyscript->vssapi->getOutputNode(pyscript->vsscript, index);
         Napi::Object clipObj = VideoNode::CreateNode(this, vsnode);
 
@@ -273,31 +282,38 @@ Napi::Value Core::GetOutput(const Napi::CallbackInfo &info) {
         outputObject.Set("clip", clipObj);
         outputObject.Set("alpha", alphaObj);
         outputObject.Set("altOutput", altOutputObj);
-    } else {
-        outputObject.Set("clip", env.Null());
-        outputObject.Set("alpha", env.Null());
-        outputObject.Set("altOutput", env.Null());
-    }
 
-    return outputObject;
+        return outputObject;
+    } else {
+        return outputs.Get(index);
+    }
 }
 
 Napi::Value Core::GetOutputs(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    return Napi::Object::New(env);
+    return outputs;
 }
 
-Napi::Value Core::ClearOutput(const Napi::CallbackInfo &info) {
+void Core::ClearOutput(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    return Napi::Object::New(env);
+    if (info.Length() != 1 || !info[0].IsNumber()) {
+        Napi::Error::New(Env(), "Index has to be a number!").ThrowAsJavaScriptException();
+        return;
+    }
+
+    int index = info[0].As<Napi::Number>().Int32Value();
+
+    outputs.Delete(index);
 }
 
-Napi::Value Core::ClearOutputs(const Napi::CallbackInfo &info) {
+void Core::ClearOutputs(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    return Napi::Object::New(env);
+    for(int i = 0, l = outputs.Length(); i < l; i++) {
+        outputs.Delete(i);
+    }
 }
 
 VSMap *Core::ObjectToVSMap(Napi::Object *object) {

@@ -115,6 +115,7 @@ export class PluginCppAttributes {
 export class FunctionCppAttributes {}
 export class VideoNodeCppAttributes {
     frameSize: Int
+    setOutput(index: Int, alpha: VideoNode, altOutput: Int): Promise<Buffer>
     getFrame(frame: number): Promise<Buffer>
     getFrame(frame: number, buffer: Buffer): Promise<Buffer>
     // getFrame(frame: number, callback: (err: Error, frame: number, buffer: Buffer) => void): null

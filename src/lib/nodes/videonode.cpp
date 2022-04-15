@@ -88,6 +88,7 @@ Napi::Object VideoNode::Init(Napi::Env env, Napi::Object exports) {
         InstanceAccessor<&VideoNode::GetFormat>("format"),
         InstanceAccessor<&VideoNode::GetNumFrames>("numFrames"),
         InstanceAccessor<&VideoNode::GetFrameSize>("frameSize"),
+        InstanceMethod<&VideoNode::SetOutput>("setOutput"),
         InstanceMethod<&VideoNode::GetFrame>("getFrame"),
         InstanceMethod<&VideoNode::GetFrames>("frames"),
     });
@@ -141,6 +142,60 @@ int VideoNode::getFrameSize() {
     frame_size += vsvideoinfo->width * vsvideoinfo->format.bytesPerSample * vsvideoinfo->height;
 
     return frame_size;
+}
+
+void VideoNode::SetOutput(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+
+    if (info.Length() < 1 || !info[0].IsNumber()) {
+        Napi::Error::New(Env(), "Index has to be a number!").ThrowAsJavaScriptException();
+        return;
+    }
+
+    if (info.Length() > 3) {
+        Napi::Error::New(Env(), "Invalid number of arguments!").ThrowAsJavaScriptException();
+        return;
+    }
+
+    int index = info[0].As<Napi::Number>().Int32Value();
+
+    Napi::Object outputObject = Napi::Object::New(env);
+
+    outputObject.Set("clip", this->Value());
+    if (info.Length() >= 2 && info[1].ToBoolean().Value()) {
+        Napi::Object alphaObject = info[1].As<Napi::Object>();
+        VideoNode *alpha = VideoNode::Unwrap(alphaObject);
+
+        if ((vsvideoinfo->width != alpha->vsvideoinfo->width) || (vsvideoinfo->height != alpha->vsvideoinfo->height)) {
+            Napi::Error::New(Env(), "Alpha clip dimensions must match the main video!").ThrowAsJavaScriptException();
+            return;
+        }
+        if (vsvideoinfo->numFrames != alpha->vsvideoinfo->numFrames) {
+            Napi::Error::New(Env(), "Alpha clip length must match the main video!").ThrowAsJavaScriptException();
+            return;
+        }
+
+        if ((vsvideoinfo->format.colorFamily != cfUndefined) && (alpha->vsvideoinfo->format.colorFamily != cfUndefined)) {
+            if (
+                (alpha->vsvideoinfo->format.colorFamily != cfGray) ||
+                (alpha->vsvideoinfo->format.sampleType != vsvideoinfo->format.sampleType) ||
+                (alpha->vsvideoinfo->format.bitsPerSample != vsvideoinfo->format.bitsPerSample)
+            ) {
+                Napi::Error::New(Env(), "Alpha clip format must match the main video!").ThrowAsJavaScriptException();
+                return;
+            }
+        } else if ((vsvideoinfo->format.colorFamily != cfUndefined) || (alpha->vsvideoinfo->format.colorFamily != cfUndefined)) {
+            Napi::Error::New(Env(), "Format must be either known or unknown for both alpha and main clip!").ThrowAsJavaScriptException();
+            return;
+        }
+
+        outputObject.Set("alpha", alphaObject);
+    } else {
+        outputObject.Set("alpha", env.Null());
+    }
+    outputObject.Set("altOutput", info.Length() == 3 ? info[2].As<Napi::Number>() : env.Null());
+
+    node->core->setOutput(index, outputObject);
 }
 
 Napi::Value VideoNode::GetWidth(const Napi::CallbackInfo &info) {

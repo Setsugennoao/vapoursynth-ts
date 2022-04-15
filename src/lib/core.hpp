@@ -19,13 +19,14 @@ class Core : public Napi::ObjectWrap<Core> {
     Napi::Object GetCoreObject();
     VSCoreInfo GetCoreInfo();
 
+    void setOutput(int index, const Napi::Object value);
+
     static Napi::FunctionReference *constructor;
     Napi::ObjectReference *proxyFunctions;
 
     const VSAPI *vsapi{nullptr};
     VSCore *vscore{nullptr};
     PyScript *pyscript{nullptr};
-
   private:
     Napi::Value Destroy(const Napi::CallbackInfo &);
     Napi::Value GetAllPlugins(const Napi::CallbackInfo &);
@@ -48,12 +49,13 @@ class Core : public Napi::ObjectWrap<Core> {
 
     Napi::Value GetOutput(const Napi::CallbackInfo &);
     Napi::Value GetOutputs(const Napi::CallbackInfo &);
-    Napi::Value ClearOutput(const Napi::CallbackInfo &);
-    Napi::Value ClearOutputs(const Napi::CallbackInfo &);
+    void ClearOutput(const Napi::CallbackInfo &);
+    void ClearOutputs(const Napi::CallbackInfo &);
 
     VSMap *ObjectToVSMap(Napi::Object *object);
     Napi::Object VSMapToObject(Napi::Env env, VSMap *vsmap);
 
     VSCoreInfo vscoreinfo{nullptr};
     int coreCreationFlags{0};
+    Napi::Array outputs;
 };
