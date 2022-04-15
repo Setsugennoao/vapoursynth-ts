@@ -1,7 +1,7 @@
 import { createWriteStream } from 'fs'
 import os from 'os'
 
-import { Int } from './types/types.d'
+import { Int } from './types/core'
 import { DefineProperty } from './types/utils'
 
 export function* range(start: Int, stop?: Int, step: Int = 1) {

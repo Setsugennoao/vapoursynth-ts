@@ -1,6 +1,6 @@
 import util from 'util'
 
-import { Int } from './types/types'
+import { Int } from './types/core'
 import { isFloat, roundToPlaces } from './utils'
 
 function makeString(n: number) {

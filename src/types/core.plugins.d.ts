@@ -1,7 +1,6 @@
 import { PresetFormat } from '../constants'
-import { Function, Plugin, VideoNode } from './core.d'
+import { Float, Function, Int, Plugin, VideoNode } from './core.d'
 import { VideoFormat } from './interfaces'
-import { Float, Int } from './types'
 
 type _getOverride<args0 extends any[], args1 extends {}> = Function & {
     (...positionalArgs: args0): VideoNode

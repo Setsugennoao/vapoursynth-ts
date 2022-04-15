@@ -3,11 +3,10 @@ import util from 'util'
 import { Fraction } from './fractions'
 import { CorePP, PluginPP, VideoNodePP } from './prettyClasses'
 import {
-    AudioNodeIP, Core, CoreIP, FunctionIP, OnlyPluginsCoreProxyI, OnlyPluginsVideoNodeProxyI, PluginIP, PrivateIP,
+    AudioNodeIP, Core, CoreIP, FunctionIP, Int, OnlyPluginsCoreProxyI, OnlyPluginsVideoNodeProxyI, PluginIP, PrivateIP,
     PyScript, VideoNodeIP
 } from './types/core'
 import { GetCreateProxyT } from './types/core.proxy'
-import { Int } from './types/types'
 import { getAttributes } from './utils'
 
 export const { Core: _Core, PyScript: _PyScript } = require('bindings')('vapoursynthts.node') as {

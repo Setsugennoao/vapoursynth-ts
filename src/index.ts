@@ -3,8 +3,15 @@ import { CoreProxy, PyScriptProxy } from './core'
 import { Core, CoreIP } from './types/core'
 
 export * from './constants'
-export * from './types/types.d'
+export { VideoNode, AudioNode, VideoTuple } from './types/core'
 
+/**
+ * Gets the singleton Core object.
+ *
+ * If it is the first time the function is called, the Core will be instantiated with the default options.
+ *
+ * This is the preferred way to reference the core.
+ */
 let core: Core
 let coreCreationFlags: constants.CoreCreationFlags = constants.CoreCreationFlags.None
 
