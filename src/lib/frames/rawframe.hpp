@@ -10,7 +10,8 @@ class RawFrame : public Napi::ObjectWrap<RawFrame> {
     RawFrame(const Napi::CallbackInfo &);
     ~RawFrame();
 
-    void SetRawNode(Core *core, VSFrame *vsframe, bool writable);
+    void SetRawNode(Core *core, VSFrame *vsframe);
+    void SetRawNode(Core *core, const VSFrame *vsframe);
     void ensureOpen(const Napi::CallbackInfo &);
 
     Napi::Value GetCore(const Napi::CallbackInfo &);

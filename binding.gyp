@@ -25,7 +25,7 @@
                 "./src/lib/core.cpp", "./src/lib/pyscript.cpp",
                 "./src/lib/plugin.cpp", "./src/lib/function.cpp",
                 "./src/lib/formats.cpp",  # "./src/lib/props.cpp",
-                "./src/lib/frames/rawframe.cpp",  # "./src/lib/frames/videoframe.cpp", "./src/lib/frames/audioframe.cpp",
+                "./src/lib/frames/rawframe.cpp", "./src/lib/frames/videoframe.cpp",  # "./src/lib/frames/audioframe.cpp",
                 "./src/lib/nodes/rawnode.cpp", "./src/lib/nodes/videonode.cpp"  # , "./src/lib/nodes/audionode.cpp",
             ],
             'cflags_cc!': ['-fno-exceptions'],

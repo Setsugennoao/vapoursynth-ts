@@ -13,9 +13,10 @@ class VideoFrame : public Napi::ObjectWrap<VideoFrame> {
     VideoFrame(const Napi::CallbackInfo &);
     ~VideoFrame();
 
-    void SetFrame(Core *core, VSFrame *vsframe, bool writable);
+    void SetFrame(Core *core, const VSFrame *constvsframe, VSFrame *vsframe);
 
-    static Napi::Object CreateVideoFrame(Core *core, VSFrame *vsframe, bool writable);
+    static Napi::Object CreateVideoFrame(Core *core, VSFrame *constvsframe);
+    static Napi::Object CreateVideoFrame(Core *core, const VSFrame *constvsframe);
 
     static Napi::FunctionReference *constructor;
 

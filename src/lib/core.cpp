@@ -6,6 +6,7 @@
 #include "formats.hpp"
 
 #include "./frames/rawframe.hpp"
+#include "./frames/videoframe.hpp"
 
 #include "./nodes/rawnode.hpp"
 #include "./nodes/videonode.hpp"
@@ -333,7 +334,7 @@ Napi::Object Register(Napi::Env env, Napi::Object exports) {
 
     VideoFormat::Init(env, exports);
     VideoNode::Init(env, exports);
-    // VideoFrame::Init(env, exports);
+    VideoFrame::Init(env, exports);
 
     // AudioFormat::Init(env, exports);
     // AudioNode::Init(env, exports);

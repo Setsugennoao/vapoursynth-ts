@@ -22,20 +22,32 @@ Napi::Object VideoFrame::Init(Napi::Env env, Napi::Object exports) {
 
 VideoFrame::VideoFrame(const Napi::CallbackInfo &info) : Napi::ObjectWrap<VideoFrame>(info) {}
 
-void VideoFrame::SetFrame(Core *core, VSFrame *vsframe, bool writable) {
+void VideoFrame::SetFrame(Core *core, const VSFrame *constvsframe, VSFrame *vsframe) {
     if (frame) {
         frame->~RawFrame();
     }
     Napi::Object rawNodeObject = RawFrame::constructor->New({});
     frame = RawFrame::Unwrap(rawNodeObject);
-    frame->SetRawNode(core, vsframe, writable);
+    if (constvsframe) {
+        frame->SetRawNode(core, constvsframe);
+    } else {
+        frame->SetRawNode(core, vsframe);
+    }
 }
 
-Napi::Object VideoFrame::CreateVideoFrame(Core *core, VSFrame *vsframe, bool writable) {
+Napi::Object VideoFrame::CreateVideoFrame(Core *core, const VSFrame *vsframe) {
     Napi::Object videoFrameObject = constructor->New({});
     VideoFrame *videoFrame = VideoFrame::Unwrap(videoFrameObject);
-    videoFrame->SetFrame(core, vsframe, writable);
+    videoFrame->SetFrame(core, vsframe, nullptr);
     Napi::Function proxy = core->proxyFunctions->Get("VideoFrame").As<Napi::Function>();
+    return proxy.Call({videoFrameObject}).As<Napi::Object>();
+}
+
+Napi::Object VideoFrame::CreateVideoFrame(Core *core, VSFrame *vsframe) {
+    Napi::Object videoFrameObject = constructor->New({});
+    VideoFrame *videoFrame = VideoFrame::Unwrap(videoFrameObject);
+    videoFrame->SetFrame(core, nullptr, vsframe);
+    Napi::Function proxy = core->proxyFunctions->Get("VideoFrameEditable").As<Napi::Function>();
     return proxy.Call({videoFrameObject}).As<Napi::Object>();
 }
 
