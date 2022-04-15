@@ -10,7 +10,6 @@
     "module": "./dist/esm5/index.js",
     "es2015": "./dist/esm2015/index.js",
     "typings": "./dist/types/index.d.ts",
-    "sideEffects": false,
     "repository": {
         "type": "git",
         "url": "https://github.com/Setsugennoao/vapoursynth-ts"
@@ -23,31 +22,20 @@
         "yarn": "^1.0"
     },
     "scripts": {
-        "cleanup": "shx rm -rf dist",
-        "prebuild": "npm run cleanup && npm run verify",
-        "build": "node-gyp rebuild && tsc && tsc --target es2018 --outDir dist/esm2015 && rollup -c config/rollup.config.js && rollup -c config/rollup.config.js --environment NODE_ENV:production",
+        "postinstall": "node-gyp rebuild",
+        "build": "tsc && rollup -c config/rollup.config.js && rollup -c config/rollup.config.js --environment NODE_ENV:production",
         "postbuild": "node scripts/copy && npm run size",
-        "docs": "typedoc -p . --theme minimal --target 'es6' --excludeNotExported --excludePrivate --ignoreCompilerErrors --exclude \"**/src/**/__tests__/*.*\" --out docs src/",
+        "docs": "typedoc --exclude \"**/src/**/__tests__/*.*\" --out docs src/",
         "test": "node-gyp build && jest -c ./config/jest.config.js",
         "test:watch": "npm t -- --watch",
         "test:coverage": "npm t -- --coverage",
         "test:ci": "npm t -- --ci",
         "verify": "tsc -p ./config && tsc -p ./scripts && npm run style && npm run test:ci",
-        "style": "npm run format -- --list-different && npm run lint",
-        "style:fix": "npm run format:fix && npm run lint:fix",
-        "format": "prettier \"**/*.{ts,tsx,js,jsx,css,scss,sass,less,md}\"",
-        "format:fix": "npm run format -- --write",
-        "lint": "tslint --project tsconfig.json --format codeFrame",
-        "lint:fix": "npm run lint -- --fix",
         "prerelease": "npm run build",
         "release": "standard-version",
-        "postrelease": "node scripts/copy && node scripts/build && npm run release:github && npm run release:npm",
-        "release:github": "git push --no-verify --follow-tags origin master",
+        "postrelease": "node scripts/copy && node scripts/build && npm run release:npm",
         "release:npm": "npm publish dist",
-        "release:preflight": "npm pack ./dist --dry-run",
-        "size": "node scripts/file-size ./dist/bundles/index.umd.min.js ./dist/bundles/index.esm.min.js",
-        "prepublishOnly": "npm run build",
-        "coverage": "jest --coverage"
+        "size": "node scripts/file-size ./dist/bundles/index.umd.min.js ./dist/bundles/index.esm.min.js"
     },
     "peerDependencies": {
         "tslib": ">=1.9.0"
