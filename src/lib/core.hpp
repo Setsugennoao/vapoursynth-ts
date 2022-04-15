@@ -53,7 +53,7 @@ class Core : public Napi::ObjectWrap<Core> {
     void ClearOutputs(const Napi::CallbackInfo &);
 
     VSMap *ObjectToVSMap(Napi::Object *object);
-    Napi::Object VSMapToObject(Napi::Env env, VSMap *vsmap);
+    Napi::Value VSMapToObject(VSMap *vsmap, bool shouldFlatten);
 
     VSCoreInfo vscoreinfo{nullptr};
     int coreCreationFlags{0};

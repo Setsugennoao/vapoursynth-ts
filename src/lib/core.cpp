@@ -321,8 +321,71 @@ VSMap *Core::ObjectToVSMap(Napi::Object *object) {
     return vsapi->createMap();
 }
 
-Napi::Object Core::VSMapToObject(Napi::Env env, VSMap *vsmap) {
-    return Napi::Object::New(env);
+Napi::Value Core::VSMapToObject(VSMap *vsmap, bool shouldFlatten) {
+    Napi::Env env = Env();
+
+    int numKeys = vsapi->mapNumKeys(vsmap);
+
+    Napi::Object returnObject = Napi::Object::New(env);
+
+    if (numKeys == 0) {
+        return shouldFlatten ? env.Null() : returnObject;
+    }
+
+
+    for (int i = 0; i < numKeys; i++) {
+        const char *retKey = vsapi->mapGetKey(vsmap, i);
+        int propType = vsapi->mapGetType(vsmap, retKey);
+        int numElements = vsapi->mapNumElements(vsmap, retKey);
+
+        Napi::Array retObjArray = Napi::Array::New(env);
+        Napi::Value retObjValue = env.Null();
+
+        for (int j = 0; j < numElements; j++) {
+            switch (propType) {
+                case ptInt:
+                    retObjValue = Napi::Number::From(env, vsapi->mapGetInt(vsmap, retKey, j, NULL));
+                    break;
+                case ptFloat:
+                    retObjValue = Napi::Number::From(env, vsapi->mapGetFloat(vsmap, retKey, j, NULL));
+                    break;
+                case ptData:
+                    retObjValue = Napi::String::From(env, vsapi->mapGetData(vsmap, retKey, j, NULL));
+                    break;
+                case ptVideoNode:
+                    retObjValue = VideoNode::CreateNode(this, vsapi->mapGetNode(vsmap, retKey, j, NULL));
+                    break;
+                case ptAudioNode:
+                    // retObjValue = AudioNode::CreateNode(this, vsapi->mapGetNode(vsmap, retKey, j, NULL));
+                    break;
+                case ptVideoFrame:
+                    retObjValue = VideoFrame::CreateVideoFrame(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL));
+                    break;
+                case ptAudioFrame:
+                    // retObjValue = AudioFrame::CreateAudioFrame(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL), nullptr);
+                    break;
+                case ptFunction:
+                    // retObjValue = JSFunction::CreateFunction(env, vsapi->mapGetFunction(vsmap, retKey, index, NULL))
+                    break;
+
+                if (shouldFlatten && numKeys == 1) {
+                    return retObjValue;
+                }
+            }
+
+            if (numElements > 1) retObjArray.Set(retObjArray.Length(), retObjValue);
+        }
+
+        if (numElements > 1) {
+            returnObject.Set(retKey, retObjArray);
+        } else {
+            returnObject.Set(retKey, retObjValue);
+        }
+
+        return returnObject;
+    }
+
+    return returnObject;
 }
 
 /**********************************************************************************************************************/
