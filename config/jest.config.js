@@ -1,5 +1,5 @@
 /**
- * @type {Partial<jest.InitialOptions>}
+ * @type {Partial<import('./types').TsJestConfig>}
  */
 const config = {
   preset: 'ts-jest',
