@@ -3,8 +3,7 @@ import util from 'util'
 import { Fraction } from './fractions'
 import { CorePP, PluginPP, VideoNodePP } from './prettyClasses'
 import {
-    AudioNodeIP, Core, CoreIP, FunctionIP, Int, OnlyPluginsCoreProxyI, OnlyPluginsVideoNodeProxyI, PluginIP, PrivateIP,
-    PyScript, VideoNodeIP
+    AudioNodeIP, Core, CoreIP, FunctionIP, Int, PluginIP, PrivateIP, PyScript, stubs, VideoNodeIP
 } from './types/core'
 import { GetCreateProxyT } from './types/core.proxy'
 import { getAttributes } from './utils'
@@ -69,7 +68,7 @@ const VideoNodeProxy = (node: VideoNodeIP) =>
     createProxy({
         __self: node,
         __PP: VideoNodePP,
-        __getter: (_: any, name: keyof OnlyPluginsVideoNodeProxyI) => {
+        __getter: (_: any, name: keyof stubs.OnlyPluginsNodeProxyI) => {
             if (node.core.plugins.includes(name)) {
                 return node.core.getPlugin(name)
             }
@@ -92,6 +91,8 @@ const FunctionProxy = (func: FunctionIP) =>
                 new Function(`return function ${func.name}() {}`)(),
                 getAttributes(func, ['signature', 'returnType'])
             ),
+        signature: func.signature,
+        returnType: func.returnType,
     })
 
 const PluginProxy = (plugin: PluginIP, injected_arg: null | VideoNodeIP | AudioNodeIP = null) =>
@@ -148,7 +149,7 @@ export const CoreProxy = (
     const _coreInstance = (<unknown>createProxy({
         __PP: CorePP,
         __self: core,
-        __getter: (_: any, name: keyof OnlyPluginsCoreProxyI) => {
+        __getter: (_: any, name: keyof stubs.OnlyPluginsCoreProxyI) => {
             if (core.plugins.includes(name)) {
                 return core.getPlugin(name)
             }

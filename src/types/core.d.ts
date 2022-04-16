@@ -3,7 +3,7 @@ import { WriteStream } from 'fs'
 import { ColorFamily, PresetFormat, SampleType } from '../constants'
 import { Fraction } from '../fractions'
 import { AudioNodePP, CorePP, FunctionPP, PluginPP, VideoNodePP } from '../prettyClasses'
-import { OnlyPluginsAudioNodeProxyI, OnlyPluginsCoreProxyI, OnlyPluginsVideoNodeProxyI } from './core.plugins'
+import { stubs } from './core.plugins'
 import { BaseVSProxyI } from './core.proxy'
 import { VideoFormat } from './interfaces'
 
@@ -65,6 +65,10 @@ export interface Function extends BaseVSProxyI {
     readonly returnType: string
 }
 
+export interface JSFunction extends BaseVSProxyI {
+    (...args: any[]): any
+}
+
 export interface Plugin extends BaseVSProxyI {
     readonly namespace: string
     readonly description: string
@@ -92,7 +96,7 @@ export interface Plugin extends BaseVSProxyI {
 
  * Unit names are also lowercase and usually short. This is good to remember as a general rule.
  */
-type CoreBase = BaseVSProxyI & CoreCppAttributes & CoreStaticAttributes & OnlyPluginsCoreProxyI
+type CoreBase = BaseVSProxyI & CoreCppAttributes & CoreStaticAttributes & stubs.OnlyPluginsCoreProxyI
 export interface Core extends CoreBase {}
 
 /**********************************************************************************************************************/
@@ -139,7 +143,7 @@ export interface CoreIP extends Core {
     new (coreCreationFlags: Int, proxies: { [k: string]: (...args: any[]) => any }): CoreIP
     versionNumber: Number
     versionString: String
-    getPlugin(name: keyof OnlyPluginsCoreProxyI): PluginIP
+    getPlugin(name: keyof stubs.OnlyPluginsCoreProxyI): PluginIP
 
     prettyPrint: typeof CorePP
     staticAttributes: CoreStaticAttributes
@@ -163,7 +167,7 @@ export class CoreCppAttributes {
     /**
      * Readonly property containing all names of loaded plugins.
      */
-    readonly plugins: (keyof OnlyPluginsCoreProxyI)[]
+    readonly plugins: (keyof stubs.OnlyPluginsCoreProxyI)[]
     /**
      * Get a previously set output node. Throws an error if the index hasn’t been set.
 
@@ -353,12 +357,12 @@ type OpaqueAudioNode = {
 type VideoNodeI = BaseVSProxyI &
     VideoNodeCppAttributes &
     VideoNodeStaticAttributes &
-    OnlyPluginsVideoNodeProxyI &
+    stubs.OnlyPluginsNodeProxyI &
     OpaqueVideoNode
 type AudioNodeI = BaseVSProxyI &
     AudioNodeCppAttributes &
     AudioNodeStaticAttributes &
-    OnlyPluginsAudioNodeProxyI &
+    stubs.OnlyPluginsNodeProxyI &
     OpaqueAudioNode
 
 /**********************************************************************************************************************/
