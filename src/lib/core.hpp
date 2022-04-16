@@ -54,6 +54,7 @@ class Core : public Napi::ObjectWrap<Core> {
     void ClearOutputs(const Napi::CallbackInfo &);
 
     void AnyObjectToVSMap(Napi::Object *object, VSMap *inmap);
+    void TypedObjectToVSMap(Napi::Object *object, std::pair<char *, char *> *objectKeyTypes, VSMap *inmap);
     Napi::Value VSMapToObject(VSMap *vsmap, bool shouldFlatten);
 
     VSCoreInfo vscoreinfo{nullptr};

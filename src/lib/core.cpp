@@ -7,9 +7,12 @@
 
 #include "./frames/rawframe.hpp"
 #include "./frames/videoframe.hpp"
+// #include "./frames/audioframe.hpp"
 
 #include "./nodes/rawnode.hpp"
 #include "./nodes/videonode.hpp"
+// #include "./nodes/audionode.hpp"
+
 
 Napi::Object Core::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "Core", {
@@ -98,7 +101,7 @@ Napi::FunctionReference *Core::constructor;
 
 Napi::Object Core::GetCoreObject() {
     Napi::Function proxy = proxyFunctions->Get("Core").As<Napi::Function>();
-    return proxy.Call({ this->Env().Null(), this->Value()}).As<Napi::Object>().Get("__self").As<Napi::Object>();
+    return proxy.Call({ this->Env().Null(), this->Value() }).As<Napi::Object>().Get("__self").As<Napi::Object>();
 }
 
 Napi::Value Core::GetPlugin(const Napi::CallbackInfo &info) {
@@ -405,6 +408,10 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
         }
     }
 }
+
+void Core::TypedObjectToVSMap(Napi::Object *object, std::pair<char *, char *> *objectKeyTypes, VSMap *inmap) {
+    Napi::Env env = object->Env();
+
 }
 
 Napi::Value Core::VSMapToObject(VSMap *vsmap, bool shouldFlatten) {
