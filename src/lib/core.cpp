@@ -412,4 +412,9 @@ Napi::Object Register(Napi::Env env, Napi::Object exports) {
     return exports;
 }
 
+bool NapiIsInteger(Napi::Env &env, Napi::Value &value) {
+  return env.Global().Get("Number").ToObject().Get("isInteger").As<Napi::Function>().Call({ value }).ToBoolean().Value();
+}
+
+
 NODE_API_MODULE(NODE_GYP_MODULE_NAME, Register);

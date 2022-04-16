@@ -60,3 +60,5 @@ class Core : public Napi::ObjectWrap<Core> {
     int coreCreationFlags{0};
     Napi::Array outputs;
 };
+
+bool NapiIsInteger(Napi::Env &env, Napi::Value &value);
