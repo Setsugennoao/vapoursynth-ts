@@ -26,7 +26,9 @@
         ],
         "downlevelIteration": true,
         "incremental": true,
-        "tsBuildInfoFile": ".tsbuildinfo"
+        "tsBuildInfoFile": ".tsbuildinfo",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
     },
     "include": [
         "./src"
