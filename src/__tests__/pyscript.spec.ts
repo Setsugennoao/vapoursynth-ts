@@ -69,5 +69,7 @@ describe(`PyScript`, () => {
         for (const frame of range(10)) {
             await appendFile(file, await clip.getFrame(frame), 'binary')
         }
+
+        await file.close()
     })
 })
