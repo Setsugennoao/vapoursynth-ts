@@ -24,6 +24,7 @@ class RawFrame : public Napi::ObjectWrap<RawFrame> {
     void CloseFrame(const Napi::CallbackInfo &);
 
     static Napi::FunctionReference *constructor;
+    static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
     Core *core{nullptr};
     VSFrame *vsframe{nullptr};

@@ -16,4 +16,5 @@ class PyScript : public Napi::ObjectWrap<PyScript> {
   private:
     static Napi::ObjectReference *coreObject;
     static Napi::FunctionReference *constructor;
+    static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 };

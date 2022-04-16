@@ -19,6 +19,7 @@ class VideoFrame : public Napi::ObjectWrap<VideoFrame> {
     static Napi::Object CreateVideoFrame(Core *core, const VSFrame *constvsframe);
 
     static Napi::FunctionReference *constructor;
+    static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
     RawFrame *frame{nullptr};
   private:

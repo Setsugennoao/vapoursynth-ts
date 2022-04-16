@@ -22,6 +22,7 @@ class Core : public Napi::ObjectWrap<Core> {
     void setOutput(int index, const Napi::Object value);
 
     static Napi::FunctionReference *constructor;
+    static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
     Napi::ObjectReference *proxyFunctions;
 
     const VSAPI *vsapi{nullptr};

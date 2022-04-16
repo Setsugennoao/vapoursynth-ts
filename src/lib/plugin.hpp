@@ -14,6 +14,7 @@ class Plugin : public Napi::ObjectWrap<Plugin> {
     static Napi::Object CreatePlugin(Core *core, VSPlugin *vsplugin);
 
     static Napi::FunctionReference *constructor;
+    static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
     VSPlugin *vsplugin{nullptr};
 

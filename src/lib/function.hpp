@@ -15,6 +15,7 @@ class Function : public Napi::ObjectWrap<Function> {
     const char *getName();
 
     static Napi::FunctionReference *constructor;
+    static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
     VSPluginFunction *vsfunction{nullptr};
 

@@ -16,6 +16,7 @@ class VideoFormat : public Napi::ObjectWrap<VideoFormat> {
     Napi::Value Replace(const Napi::CallbackInfo &);
 
     static Napi::FunctionReference *constructor;
+    static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
     const VSVideoFormat *vsvformat{nullptr};
 
