@@ -1,16 +1,18 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
-    "allowJs": true,
-    "checkJs": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "noEmit": true,
-    "importHelpers": false
-  },
-  "include": [
-    "."
-  ]
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "moduleResolution": "NodeNext",
+        "module": "NodeNext",
+        "target": "ESNext",
+        "lib": ["ES2021"],
+        "allowJs": true,
+        "checkJs": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "importHelpers": false
+    },
+    "include": [
+        "."
+    ]
 }
