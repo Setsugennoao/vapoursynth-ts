@@ -25,6 +25,10 @@ class Core : public Napi::ObjectWrap<Core> {
     static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
     Napi::ObjectReference *proxyFunctions;
 
+    void AnyObjectToVSMap(Napi::Object *object, VSMap *inmap);
+    void TypedObjectToVSMap(Napi::Object *object, std::pair<char *, char *> *objectKeyTypes, VSMap *inmap);
+    Napi::Value VSMapToObject(VSMap *vsmap, bool shouldFlatten);
+
     const VSAPI *vsapi{nullptr};
     VSCore *vscore{nullptr};
     PyScript *pyscript{nullptr};
@@ -52,10 +56,6 @@ class Core : public Napi::ObjectWrap<Core> {
     Napi::Value GetOutputs(const Napi::CallbackInfo &);
     void ClearOutput(const Napi::CallbackInfo &);
     void ClearOutputs(const Napi::CallbackInfo &);
-
-    void AnyObjectToVSMap(Napi::Object *object, VSMap *inmap);
-    void TypedObjectToVSMap(Napi::Object *object, std::pair<char *, char *> *objectKeyTypes, VSMap *inmap);
-    Napi::Value VSMapToObject(VSMap *vsmap, bool shouldFlatten);
 
     VSCoreInfo vscoreinfo{nullptr};
     int coreCreationFlags{0};
