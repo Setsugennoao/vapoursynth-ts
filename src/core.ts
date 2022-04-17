@@ -18,6 +18,7 @@ const createProxy = (objtowrap: any, cppobj: any, values: any): any => {
 
     const wrapper: any = Object.assign(
         {
+            __self: cppobj,
             __printInstance: undefined,
             __setPrintInstance: () => wrapper.__printInstance ?? (wrapper.__printInstance = new wrapper.__PP(instance)),
         },
@@ -175,5 +176,5 @@ export const PyScriptProxy: PyScript = (...args: any[]) => {
     }
 
     // @ts-ignore
-    return new _PyScript(...args).core
+    return new _PyScript(args[0], args[1].__self).core
 }
