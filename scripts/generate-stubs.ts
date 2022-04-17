@@ -113,13 +113,11 @@ function parseSignature(pluginName: string, signature: string, positional: boole
 }
 
 const toPositional = (parameters: ReturnType<typeof parseSignature>) =>
-    parameters.map(([name, type, opt]) =>
-        dom.create.parameter(name, type, opt ? dom.ParameterFlags.Optional : dom.ParameterFlags.None)
-    )
+    parameters.map(([name, type, opt]) => dom.create.parameter(`${name}${opt ? '?' : ''}`, type))
 
 const toNamedArgs = (parameters: ReturnType<typeof parseSignature>) =>
     dom.create.parameter(
-        'namedArguments',
+        `namedArguments${parameters.every((x) => x[2]) ? '?' : ''}`,
         dom.create.objectType(
             parameters.map(([name, type, opt]) =>
                 dom.create.property(name, type, opt ? dom.DeclarationFlags.Optional : dom.DeclarationFlags.None)
