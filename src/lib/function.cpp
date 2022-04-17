@@ -75,15 +75,30 @@ Napi::Value Function::IsAudioInjectable(const Napi::CallbackInfo &info) {
 Napi::Value Function::Call(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    VSMap *inmap = core->vsapi->createMap();
+    try {
+        VSMap *inmap = core->vsapi->createMap();
 
-    VSMap *in = core->vsapi->invoke(plugin->vsplugin, getName(), inmap);
+        if (info.Length() > 0) {
+            core->AnyObjectToVSMap(&info[0].As<Napi::Object>(), inmap);
+        }
 
-    VSNode *node = core->vsapi->mapGetNode(in, "clip", 0, 0);
+        VSMap *outmap = core->vsapi->invoke(plugin->vsplugin, getName(), inmap);
+        core->vsapi->freeMap(inmap);
 
-    Napi::Object videoNodeObject = VideoNode::CreateInstance(core, node);
+        const char *error{core->vsapi->mapGetError(outmap)};
+        if (error) {
+            std::string errorString{error};
+            core->vsapi->freeMap(outmap);
+            throw Napi::Error::New(Env(), errorString);
+        }
 
-    return videoNodeObject;
+        Napi::Value returnValue = core->VSMapToObject(outmap, true);
+        core->vsapi->freeMap(outmap);
+
+        return returnValue;
+    } catch(Napi::Error err) {
+        err.ThrowAsJavaScriptException();
+    }
 }
 
 Napi::Value Function::GetCore(const Napi::CallbackInfo &info) {
