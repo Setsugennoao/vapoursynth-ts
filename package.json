@@ -35,7 +35,8 @@
         "release": "standard-version",
         "postrelease": "node scripts/copy && node scripts/build && npm run release:npm",
         "release:npm": "npm publish dist",
-        "size": "node scripts/file-size ./dist/bundles/index.umd.min.js ./dist/bundles/index.esm.min.js"
+        "size": "node scripts/file-size ./dist/bundles/index.umd.min.js ./dist/bundles/index.esm.min.js",
+        "stubs": "ts-node ./scripts/generate-stubs.ts"
     },
     "peerDependencies": {
         "tslib": ">=1.9.0"
