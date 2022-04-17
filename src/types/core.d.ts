@@ -229,7 +229,7 @@ export class VideoNodeCppAttributes {
 
      * The altOutput argument is for optional alternate output modes. Currently it controls the FOURCCs used for VFW-style output with certain formats.
      */
-    setOutput(index: Int, alpha: VideoNode, altOutput: Int): Promise<Buffer>
+    setOutput(index: Int, alpha?: VideoNode, altOutput?: Int): Promise<Buffer>
     /**
      * Returns a promise of which the result will be a VideoFrame.
      * @throws {@link Error | Error} if there is an error during the frame request.
