@@ -2,6 +2,7 @@
 
 Napi::Object VideoFormat::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "VideoFormat", {
+        InstanceMethod("toObject", &VideoFormat::ToObject),
         InstanceMethod("replace", &VideoFormat::Replace)
     });
 
