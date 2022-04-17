@@ -48,6 +48,9 @@ Core::Core(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Core>(info) {
     proxyFunctions = new Napi::ObjectReference();
     *proxyFunctions = Napi::Persistent(info[1].As<Napi::Object>());
 
+    outputs = new Napi::Reference<Napi::Array>();
+    *outputs = Napi::Persistent(Napi::Array::New(env));
+
     SetCore(NULL, NULL, creationFlags, NULL);
 }
 
@@ -273,7 +276,7 @@ Napi::Value Core::QueryVideoFormat(const Napi::CallbackInfo &info) {
 }
 
 void Core::setOutput(int index, Napi::Object value) {
-    outputs.Set(index, value);
+    outputs->Value().Set(index, value);
 }
 
 Napi::Value Core::GetOutput(const Napi::CallbackInfo &info) {
@@ -304,14 +307,14 @@ Napi::Value Core::GetOutput(const Napi::CallbackInfo &info) {
 
         return outputObject;
     } else {
-        return outputs.Get(index);
+        return outputs->Value().Get(index);
     }
 }
 
 Napi::Value Core::GetOutputs(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    return outputs;
+    return outputs->Value();
 }
 
 void Core::ClearOutput(const Napi::CallbackInfo &info) {
@@ -324,14 +327,14 @@ void Core::ClearOutput(const Napi::CallbackInfo &info) {
 
     int index = info[0].As<Napi::Number>().Int32Value();
 
-    outputs.Delete(index);
+    outputs->Value().Delete(index);
 }
 
 void Core::ClearOutputs(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    for(int i = 0, l = outputs.Length(); i < l; i++) {
-        outputs.Delete(i);
+    for(int i = 0, l = outputs->Value().Length(); i < l; i++) {
+        outputs->Value().Delete(i);
     }
 }
 

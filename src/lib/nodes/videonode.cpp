@@ -193,6 +193,7 @@ void VideoNode::SetOutput(const Napi::CallbackInfo &info) {
     } else {
         outputObject.Set("alpha", env.Null());
     }
+
     outputObject.Set("altOutput", info.Length() == 3 ? info[2].As<Napi::Number>() : env.Null());
 
     node->core->setOutput(index, outputObject);

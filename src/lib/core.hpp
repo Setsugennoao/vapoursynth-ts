@@ -59,7 +59,7 @@ class Core : public Napi::ObjectWrap<Core> {
 
     VSCoreInfo vscoreinfo{nullptr};
     int coreCreationFlags{0};
-    Napi::Array outputs;
+    Napi::Reference<Napi::Array> *outputs;
 };
 
 bool NapiIsInteger(Napi::Env &env, Napi::Value &value);
