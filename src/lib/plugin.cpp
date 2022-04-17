@@ -58,9 +58,7 @@ Napi::Value Plugin::GetFunction(const Napi::CallbackInfo &info) {
 
     VSPluginFunction *vsfunction = core->vsapi->getPluginFunctionByName(name.c_str(), vsplugin);
 
-    Napi::Object functionObject = Function::constructor->New({});
-    Function *function = Function::Unwrap(functionObject);
-    function->SetFunction(core, this, vsfunction);
+    Napi::Object functionObject = Function::CreateFunction(core, this, vsfunction);
 
     return functionObject;
 }

@@ -27,6 +27,6 @@ Object.assign(this, {
 
 export { core, setCoreCreationFlags, PyScriptProxy as PyScript }
 
-export const { getOutput, getOutputs, clearOutput, clearOutputs } = (<any>(<unknown>this)).core.__self as CoreIP
+export const { getOutput, getOutputs, clearOutput, clearOutputs } = (<any>(<unknown>this)).core as CoreIP
 
 export default (<unknown>this) as typeof import('.')

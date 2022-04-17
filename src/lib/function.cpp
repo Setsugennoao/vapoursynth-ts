@@ -24,10 +24,23 @@ Napi::Object Function::Init(Napi::Env env, Napi::Object exports) {
 
 Function::Function(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Function>(info) {}
 
+Napi::Object Function::GetFunctionObject() {
+    Napi::Function proxy = core->proxyFunctions->Get("Function").As<Napi::Function>();
+    return proxy.Call({this->Value()}).As<Napi::Object>();
+}
+
 void Function::SetFunction(Core *core, Plugin *plugin, VSPluginFunction *vsfunction) {
     this->core = core;
     this->plugin = plugin;
     this->vsfunction = vsfunction;
+}
+
+Napi::Object Function::CreateFunction(Core *core, Plugin *plugin, VSPluginFunction *vsfunction) {
+    Napi::Object functionObject = constructor->New({});
+    Function *function = Function::Unwrap(functionObject);
+    function->SetFunction(core, plugin, vsfunction);
+    Napi::Function proxy = core->proxyFunctions->Get("Function").As<Napi::Function>();
+    return proxy.Call({functionObject}).As<Napi::Object>();
 }
 
 Napi::FunctionReference *Function::constructor;

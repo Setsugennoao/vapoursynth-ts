@@ -38,7 +38,7 @@ PyScript::PyScript(const Napi::CallbackInfo &info) : Napi::ObjectWrap<PyScript>(
         return;
     }
 
-    *coreObject = Napi::Weak(info[1].As<Napi::Object>().Get("__self").As<Napi::Object>());
+    *coreObject = Napi::Weak(info[1].As<Napi::Object>());
 
     Core *core = Core::Unwrap(coreObject->Value());
     core->SetCore(NULL, NULL, NULL, this);

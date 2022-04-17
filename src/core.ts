@@ -2,10 +2,7 @@ import util from 'util'
 
 import { Fraction } from './fractions'
 import { CorePP, PluginPP, VideoNodePP } from './prettyClasses'
-import {
-    AudioNodeIP, Core, CoreIP, FunctionIP, Int, PluginIP, PrivateIP, PyScript, stubs, VideoNodeIP
-} from './types/core'
-import { GetCreateProxyT } from './types/core.proxy'
+import { AudioNodeIP, Core, CoreIP, FunctionIP, Int, PluginIP, PyScript, stubs, VideoNodeIP } from './types/core'
 import { getAttributes } from './utils'
 
 export const { Core: _Core, PyScript: _PyScript } = require('bindings')('vapoursynthts.node') as {
@@ -13,64 +10,66 @@ export const { Core: _Core, PyScript: _PyScript } = require('bindings')('vapours
     PyScript: PyScript
 }
 
-const createProxy = <T extends PrivateIP, S extends { __self: any; __PP: T['prettyPrint']; __setPrintInstance?: any }>(
-    otherobj: S
-): GetCreateProxyT<T> => {
-    let instance: any,
-        self: { [key: string]: any } = Object.assign(
-            {
-                __printInstance: undefined,
-                __setPrintInstance: () =>
-                    self.__printInstance ?? ((<any>self.__printInstance) = new self.__PP(instance)),
-            },
-            otherobj
-        )
+const nativeFunctionProxy = (func: any, target: any, key: any) =>
+    new Proxy(func, { apply: (_, __, args) => target[key].apply(target, args) })
 
-    instance = Object.assign(
-        new Proxy(self.__self, {
-            get: (_, name: string) => {
-                switch (true) {
-                    case name in self.__self:
-                        return self.__self[name]
-                    case name in self:
-                        return self[name]
-                    case '__getter' in self:
-                        return self.__getter(self, name)
-                    default:
-                        throw ReferenceError(`No attribute with the name ${name} exists.`)
-                }
-            },
-            set: (_, name: string, newValue: any) => {
-                try {
-                    self.__self[name] = newValue
-                    return true
-                } catch (error) {
-                    if (self.hasOwnProperty(name)) {
-                        self[name] = newValue
+const createProxy = (objtowrap: any, cppobj: any, values: any): any => {
+    let instance: any
 
-                        return true
-                    }
-                    throw error
-                }
-            },
-        }),
+    const wrapper: any = Object.assign(
         {
-            [util.inspect.custom]: () => self.__setPrintInstance(),
-            toString: () => JSON.stringify(self.__setPrintInstance()),
-        }
+            __printInstance: undefined,
+            __setPrintInstance: () => wrapper.__printInstance ?? (wrapper.__printInstance = new wrapper.__PP(instance)),
+        },
+        values
     )
 
-    // @ts-ignore
-    return (otherobj = null), instance
+    instance = new Proxy(objtowrap, {
+        get: (target, key, receiver) => {
+            switch (true) {
+                case key in wrapper:
+                    return wrapper[key]
+                case key in cppobj: {
+                    const property = cppobj[key]
+                    switch (typeof property) {
+                        case 'function':
+                            return nativeFunctionProxy(cppobj[key], cppobj, key)
+                        default:
+                            return property
+                    }
+                }
+                case key in target:
+                    return target[key]
+                case '__getter' in wrapper:
+                    return wrapper.__getter(key)
+                default:
+                    throw ReferenceError(`No attribute with the name ${key.toString()} exists.`)
+            }
+        },
+        set: (target, key, newValue) => {
+            switch (typeof key) {
+                case 'symbol':
+                    return (target[key] = newValue)
+                default:
+                    return (wrapper[key] = newValue)
+            }
+        },
+    })
+
+    Object.assign(instance, {
+        [util.inspect.custom]: () => wrapper.__setPrintInstance(),
+        toString: () => JSON.stringify(wrapper.__setPrintInstance()),
+    })
+
+    return instance
 }
 
 const VideoNodeProxy = (node: VideoNodeIP) =>
-    createProxy({
-        __self: node,
+    createProxy(node, node, {
         __PP: VideoNodePP,
-        __getter: (_: any, name: keyof stubs.OnlyPluginsNodeProxyI) => {
+        __getter: (name: keyof stubs.OnlyPluginsNodeProxyI) => {
             if (node.core.plugins.includes(name)) {
-                return node.core.getPlugin(name)
+                return node.core.getPlugin(name, node)
             }
 
             throw ReferenceError(
@@ -83,9 +82,9 @@ const VideoNodeProxy = (node: VideoNodeIP) =>
     })
 
 const FunctionProxy = (func: FunctionIP) =>
-    createProxy({
-        __PP: Function,
-        __self: (...args: any[]) => func.Call(...args), // TODO: returnType check
+    createProxy((...args: any[]) => func.Call(args), func, {
+        // TODO: returnType check
+        __PP: null,
         __setPrintInstance: () =>
             Object.assign(
                 new Function(`return function ${func.name}() {}`)(),
@@ -96,13 +95,12 @@ const FunctionProxy = (func: FunctionIP) =>
     })
 
 const PluginProxy = (plugin: PluginIP, injected_arg: null | VideoNodeIP | AudioNodeIP = null) =>
-    createProxy({
+    createProxy(plugin, plugin, {
         __PP: PluginPP,
-        __self: plugin,
         __injected_arg: injected_arg,
-        __getter: (_: any, name: string) => {
+        __getter: (name: string) => {
             if (plugin.functions.includes(name)) {
-                return FunctionProxy(plugin.getFunction(name))
+                return plugin.getFunction(name)
             }
 
             throw ReferenceError(`No attribute with the name ${name} exists. Did you mistype a function name?`)
@@ -146,10 +144,9 @@ export const CoreProxy = (
         Core: CoreProxy,
     })
 ) => {
-    const _coreInstance = (<unknown>createProxy({
+    const _coreInstance = createProxy(core, core, {
         __PP: CorePP,
-        __self: core,
-        __getter: (_: any, name: keyof stubs.OnlyPluginsCoreProxyI) => {
+        __getter: (name: keyof stubs.OnlyPluginsCoreProxyI) => {
             if (core.plugins.includes(name)) {
                 return core.getPlugin(name)
             }
@@ -158,7 +155,7 @@ export const CoreProxy = (
                 `No attribute with the name ${name} exists. Did you mistype a plugin namespace or not install it?`
             )
         },
-    })) as Core
+    }) as Core
 
     return Object.assign(_coreInstance, {
         core: _coreInstance,

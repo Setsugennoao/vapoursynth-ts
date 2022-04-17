@@ -11,6 +11,9 @@ class Function : public Napi::ObjectWrap<Function> {
     ~Function();
 
     void SetFunction(Core *core, Plugin *plugin, VSPluginFunction *vsfunction);
+    Napi::Object GetFunctionObject();
+
+    static Napi::Object CreateFunction(Core *core, Plugin *plugin, VSPluginFunction *vsfunction);
 
     const char *getName();
 

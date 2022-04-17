@@ -119,7 +119,7 @@ Napi::Object VideoNode::CreateNode(Core *core, VSNode *vsnode) {
     VideoNode *videoNode = VideoNode::Unwrap(videoNodeObject);
     videoNode->SetNode(core, vsnode);
     Napi::Function proxy = core->proxyFunctions->Get("VideoNode").As<Napi::Function>();
-    return proxy.Call({videoNodeObject}).As<Napi::Object>().Get("__self").As<Napi::Object>();
+    return proxy.Call({videoNodeObject}).As<Napi::Object>();
 }
 
 Napi::FunctionReference *VideoNode::constructor;

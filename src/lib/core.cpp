@@ -101,7 +101,7 @@ Napi::FunctionReference *Core::constructor;
 
 Napi::Object Core::GetCoreObject() {
     Napi::Function proxy = proxyFunctions->Get("Core").As<Napi::Function>();
-    return proxy.Call({ this->Env().Null(), this->Value() }).As<Napi::Object>().Get("__self").As<Napi::Object>();
+    return proxy.Call({ this->Env().Null(), this->Value() }).As<Napi::Object>();
 }
 
 Napi::Value Core::GetPlugin(const Napi::CallbackInfo &info) {
