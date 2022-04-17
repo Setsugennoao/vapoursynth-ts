@@ -13,15 +13,15 @@ class VideoFrame : public Napi::ObjectWrap<VideoFrame> {
     VideoFrame(const Napi::CallbackInfo &);
     ~VideoFrame();
 
-    void SetFrame(Core *core, const VSFrame *constvsframe, VSFrame *vsframe);
-
-    static Napi::Object CreateVideoFrame(Core *core, VSFrame *constvsframe);
-    static Napi::Object CreateVideoFrame(Core *core, const VSFrame *constvsframe);
+    VideoFrame *SetInstance(Core *core, const VSFrame *constvsframe, VSFrame *vsframe);
+    static Napi::Object CreateInstance(Core *core, VSFrame *constvsframe);
+    static Napi::Object CreateInstance(Core *core, const VSFrame *constvsframe);
+    Napi::Object GetProxyObject();
 
     static Napi::FunctionReference *constructor;
     static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
-    RawFrame *frame{nullptr};
+    RawFrame *rawframe{nullptr};
   private:
     Napi::Value GetCore(const Napi::CallbackInfo &);
 

@@ -7,11 +7,11 @@
 class VideoFrameWorker : public Napi::AsyncWorker {
   public:
     VideoFrameWorker(VideoNode *vnode, int32_t frameNumber, Napi::Buffer<char> &buffer, bool ownBuffer):
-        Napi::AsyncWorker(vnode->Env()), ownBuffer(ownBuffer), vnode(vnode), vsapi(vnode->node->core->vsapi),
+        Napi::AsyncWorker(vnode->Env()), ownBuffer(ownBuffer), vnode(vnode), vsapi(vnode->rawnode->core->vsapi),
         frameNumber(frameNumber), bufferHandle(Napi::Persistent(buffer)), outBuffer(buffer.Data()),
         deferred(Napi::Promise::Deferred::New(vnode->Env())) {}
     VideoFrameWorker(VideoNode *vnode, int32_t frameNumber, Napi::Buffer<char> &buffer, bool ownBuffer, Napi::Function &callback):
-        Napi::AsyncWorker(callback), ownBuffer(ownBuffer), vnode(vnode), vsapi(vnode->node->core->vsapi),
+        Napi::AsyncWorker(callback), ownBuffer(ownBuffer), vnode(vnode), vsapi(vnode->rawnode->core->vsapi),
         frameNumber(frameNumber), bufferHandle(Napi::Persistent(buffer)), outBuffer(buffer.Data()),
         deferred(Napi::Promise::Deferred::New(vnode->Env())) {}
 
@@ -21,7 +21,7 @@ class VideoFrameWorker : public Napi::AsyncWorker {
 
     void Execute() {
         char errMsg[1024];
-        const VSFrame *frame = vnode->node->core->vsapi->getFrame(frameNumber, vnode->node->vsnode, errMsg, sizeof(errMsg));
+        const VSFrame *frame = vnode->rawnode->core->vsapi->getFrame(frameNumber, vnode->rawnode->vsnode, errMsg, sizeof(errMsg));
 
         if (!frame) {
             std::ostringstream ss;
@@ -43,7 +43,7 @@ class VideoFrameWorker : public Napi::AsyncWorker {
             }
         }
 
-        vnode->node->core->vsapi->freeFrame(frame);
+        vnode->rawnode->core->vsapi->freeFrame(frame);
     }
 
     void OnOK() {
@@ -103,29 +103,30 @@ Napi::Object VideoNode::Init(Napi::Env env, Napi::Object exports) {
 
 VideoNode::VideoNode(const Napi::CallbackInfo &info) : Napi::ObjectWrap<VideoNode>(info) {}
 
-void VideoNode::SetNode(Core *core, VSNode *vsnode) {
-    if (node) {
-        node->~RawNode();
-    }
-    Napi::Object rawNodeObject = RawNode::constructor->New({});
-    node = RawNode::Unwrap(rawNodeObject);
-    node->SetRawNode(core, vsnode);
-
-    vsvideoinfo = core->vsapi->getVideoInfo(node->vsnode);
+Napi::Object VideoNode::GetProxyObject() {
+    return rawnode->core->proxyFunctions->Get("VideoNode").As<Napi::Function>().Call({this->Value()}).As<Napi::Object>();
 }
 
-Napi::Object VideoNode::CreateNode(Core *core, VSNode *vsnode) {
-    Napi::Object videoNodeObject = constructor->New({});
-    VideoNode *videoNode = VideoNode::Unwrap(videoNodeObject);
-    videoNode->SetNode(core, vsnode);
-    Napi::Function proxy = core->proxyFunctions->Get("VideoNode").As<Napi::Function>();
-    return proxy.Call({videoNodeObject}).As<Napi::Object>();
+VideoNode *VideoNode::SetInstance(Core *core, VSNode *vsnode) {
+    if (rawnode) {
+        rawnode->~RawNode();
+    }
+
+    rawnode = RawNode::CreateInstance(core, vsnode);
+
+    vsvideoinfo = core->vsapi->getVideoInfo(rawnode->vsnode);
+
+    return this;
+}
+
+Napi::Object VideoNode::CreateInstance(Core *core, VSNode *vsnode) {
+    return VideoNode::Unwrap(constructor->New({}))->SetInstance(core, vsnode)->GetProxyObject();
 }
 
 Napi::FunctionReference *VideoNode::constructor;
 
 VideoNode::~VideoNode() {
-    node->~RawNode();
+    rawnode->~RawNode();
 }
 
 int VideoNode::getFrameSize() {
@@ -161,10 +162,9 @@ void VideoNode::SetOutput(const Napi::CallbackInfo &info) {
 
     Napi::Object outputObject = Napi::Object::New(env);
 
-    outputObject.Set("clip", this->Value());
+    outputObject.Set("clip", this->GetProxyObject());
     if (info.Length() >= 2 && info[1].ToBoolean().Value()) {
-        Napi::Object alphaObject = info[1].As<Napi::Object>();
-        VideoNode *alpha = VideoNode::Unwrap(alphaObject);
+        VideoNode *alpha = VideoNode::Unwrap(info[1].As<Napi::Object>());
 
         if ((vsvideoinfo->width != alpha->vsvideoinfo->width) || (vsvideoinfo->height != alpha->vsvideoinfo->height)) {
             Napi::Error::New(Env(), "Alpha clip dimensions must match the main video!").ThrowAsJavaScriptException();
@@ -189,14 +189,14 @@ void VideoNode::SetOutput(const Napi::CallbackInfo &info) {
             return;
         }
 
-        outputObject.Set("alpha", alphaObject);
+        outputObject.Set("alpha", alpha->GetProxyObject());
     } else {
         outputObject.Set("alpha", env.Null());
     }
 
     outputObject.Set("altOutput", info.Length() == 3 ? info[2].As<Napi::Number>() : env.Null());
 
-    node->core->setOutput(index, outputObject);
+    rawnode->core->setOutput(index, outputObject);
 }
 
 Napi::Value VideoNode::GetWidth(const Napi::CallbackInfo &info) {
@@ -218,7 +218,7 @@ Napi::Value VideoNode::GetFormat(const Napi::CallbackInfo &info) {
         return env.Null();
     }
 
-    return VideoFormat::CreateVideoFormat(node->core, &vsvideoinfo->format);
+    return VideoFormat::CreateInstance(rawnode->core, &vsvideoinfo->format);
 }
 
 Napi::Value VideoNode::GetNumFrames(const Napi::CallbackInfo &info) {
@@ -272,9 +272,9 @@ Napi::Value VideoNode::GetFrame(const Napi::CallbackInfo &info) {
 }
 
 Napi::Value VideoNode::GetFrames(const Napi::CallbackInfo &info) {
-    return node->GetFrames(info);
+    return rawnode->GetFrames(info);
 }
 
 Napi::Value VideoNode::GetCore(const Napi::CallbackInfo &info) {
-    return node->GetCore(info);
+    return rawnode->core->GetProxyObject();
 }

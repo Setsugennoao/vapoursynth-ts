@@ -51,7 +51,7 @@ Core::Core(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Core>(info) {
     outputs = new Napi::Reference<Napi::Array>();
     *outputs = Napi::Persistent(Napi::Array::New(env));
 
-    SetCore(NULL, NULL, creationFlags, NULL);
+    SetInstance(NULL, NULL, creationFlags, NULL);
 }
 
 Core::~Core() {}
@@ -64,7 +64,7 @@ Napi::Value Core::Destroy(const Napi::CallbackInfo &info) {
     return Napi::Boolean::From(info.Env(), false);
 }
 
-void Core::SetCore(const VSAPI *newvsapi, VSCore *newvscore, int creationFlags, PyScript *newpyscript) {
+Core *Core::SetInstance(const VSAPI *newvsapi, VSCore *newvscore, int creationFlags, PyScript *newpyscript) {
     if (!newvsapi) {
         if (!vsapi) {
             vsapi = getVapourSynthAPI(VAPOURSYNTH_API_VERSION);
@@ -93,6 +93,8 @@ void Core::SetCore(const VSAPI *newvsapi, VSCore *newvscore, int creationFlags, 
             pyscript = newpyscript;
         }
     }
+
+    return this;
 }
 
 VSCoreInfo Core::GetCoreInfo() {
@@ -102,9 +104,8 @@ VSCoreInfo Core::GetCoreInfo() {
 
 Napi::FunctionReference *Core::constructor;
 
-Napi::Object Core::GetCoreObject() {
-    Napi::Function proxy = proxyFunctions->Get("Core").As<Napi::Function>();
-    return proxy.Call({ this->Env().Null(), this->Value() }).As<Napi::Object>();
+Napi::Object Core::GetProxyObject() {
+    return proxyFunctions->Get("Core").As<Napi::Function>().Call({ this->Env().Null(), this->Value() }).As<Napi::Object>();
 }
 
 Napi::Value Core::GetPlugin(const Napi::CallbackInfo &info) {
@@ -116,22 +117,18 @@ Napi::Value Core::GetPlugin(const Napi::CallbackInfo &info) {
     if (info.Length() > 1 && info[0].IsObject()) {
         Napi::Object injectedNodeObj = info[0].As<Napi::Object>();
         if (VideoNode::IsParentOf(injectedNodeObj)) { //|| AudioNode::IsParentOf(injectedNodeObj)) {
-            RawNode *node{nullptr};
-
             if (VideoNode::IsParentOf(injectedNodeObj)) {
-                node = VideoNode::Unwrap(injectedNodeObj)->node;
+                injectedArg = VideoNode::Unwrap(injectedNodeObj)->rawnode;
             }
             // else {
-            //     node = AudioNode::Unwrap(nodeObject)->node;
+            //     injectedArg = AudioNode::Unwrap(nodeObject)->rawnode;
             // }
         }
     }
 
     VSPlugin *vsplugin = vsapi->getPluginByNamespace(name.c_str(), vscore);
 
-    Napi::Object pluginObject = Plugin::CreatePlugin(this, vsplugin, injectedArg);
-
-    return pluginObject;
+    return Plugin::CreateInstance(this, vsplugin, injectedArg);
 }
 
 Napi::Value Core::GetAllPlugins(const Napi::CallbackInfo &info) {
@@ -228,7 +225,7 @@ Napi::Object Core::queryVideoFormat(VSColorFamily colorFamily, VSSampleType samp
         return Env().Null().As<Napi::Object>();
     }
 
-    return VideoFormat::CreateVideoFormat(this, vsformat);
+    return VideoFormat::CreateInstance(this, vsformat);
 }
 
 Napi::Object Core::getVideoFormat(uint32_t id) {
@@ -237,7 +234,8 @@ Napi::Object Core::getVideoFormat(uint32_t id) {
         Napi::Error::New(Env(), "Invalid format id specified!").ThrowAsJavaScriptException();
         return Env().Null().As<Napi::Object>();
     }
-    return VideoFormat::CreateVideoFormat(this, vsformat);
+
+    return VideoFormat::CreateInstance(this, vsformat);
 }
 
 Napi::Value Core::GetVideoFormat(const Napi::CallbackInfo &info) {
@@ -293,10 +291,10 @@ Napi::Value Core::GetOutput(const Napi::CallbackInfo &info) {
         Napi::Object outputObject = Napi::Object::New(env);
 
         VSNode *vsnode = pyscript->vssapi->getOutputNode(pyscript->vsscript, index);
-        Napi::Object clipObj = VideoNode::CreateNode(this, vsnode);
+        Napi::Object clipObj = VideoNode::CreateInstance(this, vsnode);
 
         VSNode *vsalphanode = pyscript->vssapi->getOutputAlphaNode(pyscript->vsscript, index);
-        Napi::Value alphaObj = vsalphanode ? VideoNode::CreateNode(this, vsalphanode) : env.Null();
+        Napi::Value alphaObj = vsalphanode ? VideoNode::CreateInstance(this, vsalphanode) : env.Null();
 
         int vsaltoutput = pyscript->vssapi->getAltOutputMode(pyscript->vsscript, index);
         Napi::Number altOutputObj = Napi::Number::New(env, vsaltoutput);
@@ -381,31 +379,31 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
             } else if (VideoNode::IsParentOf(value)) { //|| AudioNode::IsParentOf(value)) {
                 Napi::Object nodeObject = value.As<Napi::Object>();
 
-                RawNode *node{nullptr};
+                RawNode *rawnode{nullptr};
 
                 if (VideoNode::IsParentOf(value)) {
-                    node = VideoNode::Unwrap(nodeObject)->node;
+                    rawnode = VideoNode::Unwrap(nodeObject)->rawnode;
                 }
                 // else {
-                //     node = AudioNode::Unwrap(nodeObject)->node;
+                //     rawnode = AudioNode::Unwrap(nodeObject)->node;
                 // }
 
-                error = vsapi->mapSetNode(inmap, key, node->vsnode, 1);
+                error = vsapi->mapSetNode(inmap, key, rawnode->vsnode, 1);
             } else if (VideoFrame::IsParentOf(value)) { //|| AudioFrame::IsParentOf(value)) {
                 Napi::Object frameObject = value.As<Napi::Object>();
 
-                RawFrame *frame{nullptr};
+                RawFrame *rawframe{nullptr};
 
                 if (VideoFrame::IsParentOf(value)) {
-                    frame = VideoFrame::Unwrap(frameObject)->frame;
+                    rawframe = VideoFrame::Unwrap(frameObject)->rawframe;
                 }
                 // else {
-                //     node = AudioNode::Unwrap(nodeObject)->node;
+                //     frame = AudioFrame::Unwrap(frameObject)->rawframe;
                 // }
 
-                error = vsapi->mapSetFrame(inmap, key, frame->vsframe, 1);
+                error = vsapi->mapSetFrame(inmap, key, rawframe->vsframe, 1);
             } else if (Function::IsParentOf(value)) {
-                Function *func = Function::Unwrap(value.As<Napi::Object>());
+                // Function *func = Function::Unwrap(value.As<Napi::Object>());
                 // vsapi->mapSetFunction(inmap, key, func->vsfunction, 1);
             } else {
                 std::ostringstream ss;
@@ -464,19 +462,19 @@ Napi::Value Core::VSMapToObject(VSMap *vsmap, bool shouldFlatten) {
                     retObjValue = Napi::String::From(env, vsapi->mapGetData(vsmap, retKey, j, NULL));
                     break;
                 case ptVideoNode:
-                    retObjValue = VideoNode::CreateNode(this, vsapi->mapGetNode(vsmap, retKey, j, NULL));
+                    retObjValue = VideoNode::CreateInstance(this, vsapi->mapGetNode(vsmap, retKey, j, NULL));
                     break;
                 case ptAudioNode:
-                    // retObjValue = AudioNode::CreateNode(this, vsapi->mapGetNode(vsmap, retKey, j, NULL));
+                    // retObjValue = AudioNode::CreateInstance(this, vsapi->mapGetNode(vsmap, retKey, j, NULL));
                     break;
                 case ptVideoFrame:
-                    retObjValue = VideoFrame::CreateVideoFrame(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL));
+                    retObjValue = VideoFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL));
                     break;
                 case ptAudioFrame:
-                    // retObjValue = AudioFrame::CreateAudioFrame(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL), nullptr);
+                    // retObjValue = AudioFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL), nullptr);
                     break;
                 case ptFunction:
-                    // retObjValue = JSFunction::CreateFunction(env, vsapi->mapGetFunction(vsmap, retKey, index, NULL))
+                    // retObjValue = JSFunction::CreateInstance(env, vsapi->mapGetFunction(vsmap, retKey, index, NULL))
                     break;
 
                 if (shouldFlatten && numKeys == 1) {

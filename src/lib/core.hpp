@@ -15,23 +15,26 @@ class Core : public Napi::ObjectWrap<Core> {
     Core(const Napi::CallbackInfo &);
     ~Core();
 
-    void SetCore(const VSAPI *newvsapi, VSCore *newvscore, int creationFlags, PyScript *newpyscript);
-    Napi::Object GetCoreObject();
-    VSCoreInfo GetCoreInfo();
-
-    void setOutput(int index, const Napi::Object value);
+    Core *SetInstance(const VSAPI *newvsapi, VSCore *newvscore, int creationFlags, PyScript *newpyscript);
+    Napi::Object GetProxyObject();
 
     static Napi::FunctionReference *constructor;
     static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
+
     Napi::ObjectReference *proxyFunctions;
+    Napi::Reference<Napi::Array> *outputs;
 
     void AnyObjectToVSMap(Napi::Object *object, VSMap *inmap);
     void TypedObjectToVSMap(Napi::Object *object, std::pair<char *, char *> *objectKeyTypes, VSMap *inmap);
     Napi::Value VSMapToObject(VSMap *vsmap, bool shouldFlatten);
 
+    VSCoreInfo GetCoreInfo();
+
+    void setOutput(int index, const Napi::Object value);
+
+    PyScript *pyscript{nullptr};
     const VSAPI *vsapi{nullptr};
     VSCore *vscore{nullptr};
-    PyScript *pyscript{nullptr};
   private:
     Napi::Value Destroy(const Napi::CallbackInfo &);
     Napi::Value GetAllPlugins(const Napi::CallbackInfo &);
@@ -59,7 +62,6 @@ class Core : public Napi::ObjectWrap<Core> {
 
     VSCoreInfo vscoreinfo{nullptr};
     int coreCreationFlags{0};
-    Napi::Reference<Napi::Array> *outputs;
 };
 
 bool NapiIsInteger(Napi::Env &env, Napi::Value &value);

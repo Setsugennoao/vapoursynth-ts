@@ -13,21 +13,19 @@ class VideoNode : public Napi::ObjectWrap<VideoNode> {
     VideoNode(const Napi::CallbackInfo &);
     ~VideoNode();
 
-    void SetNode(Core *core, VSNode *vsnode);
-
-    static Napi::Object CreateNode(Core *core, VSNode *vsnode);
-    int getFrameSize();
+    VideoNode *SetInstance(Core *core, VSNode *vsnode);
+    static Napi::Object CreateInstance(Core *core, VSNode *vsnode);
+    Napi::Object GetProxyObject();
 
     static Napi::FunctionReference *constructor;
     static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
-    RawNode *node{nullptr};
-    const VSVideoInfo *vsvideoinfo{nullptr};
+    int getFrameSize();
 
+    const VSVideoInfo *vsvideoinfo{nullptr};
+    RawNode *rawnode{nullptr};
   private:
     Napi::Value GetCore(const Napi::CallbackInfo &);
-
-   void SetOutput(const Napi::CallbackInfo &);
 
     Napi::Value GetWidth(const Napi::CallbackInfo &);
     Napi::Value GetHeight(const Napi::CallbackInfo &);
@@ -36,6 +34,7 @@ class VideoNode : public Napi::ObjectWrap<VideoNode> {
     Napi::Value GetFrameSize(const Napi::CallbackInfo &);
     Napi::Value GetFps(const Napi::CallbackInfo &);
 
+    void SetOutput(const Napi::CallbackInfo &);
     Napi::Value GetFrame(const Napi::CallbackInfo &);
     Napi::Value GetFrames(const Napi::CallbackInfo &);
 };

@@ -21,23 +21,20 @@ Napi::Object Plugin::Init(Napi::Env env, Napi::Object exports) {
 
 Plugin::Plugin(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Plugin>(info) {}
 
-Napi::Object Plugin::GetPluginObject() {
-    Napi::Function proxy = core->proxyFunctions->Get("Plugin").As<Napi::Function>();
-    return proxy.Call({this->Value()}).As<Napi::Object>();
+Napi::Object Plugin::GetProxyObject() {
+    return core->proxyFunctions->Get("Plugin").As<Napi::Function>().Call({this->Value()}).As<Napi::Object>();
 }
 
-void Plugin::SetPlugin(Core *core, VSPlugin *vsplugin, RawNode *injectedNode) {
+Plugin *Plugin::SetInstance(Core *core, VSPlugin *vsplugin, RawNode *injectedNode) {
     this->core = core;
     this->vsplugin = vsplugin;
     this->injectedNode = injectedNode;
+
+    return this;
 }
 
-Napi::Object Plugin::CreatePlugin(Core *core, VSPlugin *vsplugin, RawNode *injectedNode) {
-    Napi::Object pluginObject = constructor->New({});
-    Plugin *plugin = Plugin::Unwrap(pluginObject);
-    plugin->SetPlugin(core, vsplugin, injectedNode);
-    Napi::Function proxy = core->proxyFunctions->Get("Plugin").As<Napi::Function>();
-    return proxy.Call({pluginObject}).As<Napi::Object>();
+Napi::Object Plugin::CreateInstance(Core *core, VSPlugin *vsplugin, RawNode *injectedNode) {
+    return Plugin::Unwrap(constructor->New({}))->SetInstance(core, vsplugin, injectedNode)->GetProxyObject();
 }
 
 Napi::FunctionReference *Plugin::constructor;
@@ -59,9 +56,7 @@ Napi::Value Plugin::GetFunction(const Napi::CallbackInfo &info) {
 
     VSPluginFunction *vsfunction = core->vsapi->getPluginFunctionByName(name.c_str(), vsplugin);
 
-    Napi::Object functionObject = Function::CreateFunction(core, this, vsfunction);
-
-    return functionObject;
+    return Function::CreateInstance(core, this, vsfunction);
 }
 
 Napi::Value Plugin::GetAllFunctions(const Napi::CallbackInfo &info) {
@@ -83,5 +78,5 @@ Napi::Value Plugin::GetAllFunctions(const Napi::CallbackInfo &info) {
 }
 
 Napi::Value Plugin::GetCore(const Napi::CallbackInfo &info) {
-    return core->GetCoreObject();
+    return core->GetProxyObject();
 }

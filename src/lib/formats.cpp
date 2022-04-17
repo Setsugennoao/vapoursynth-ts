@@ -15,17 +15,19 @@ Napi::Object VideoFormat::Init(Napi::Env env, Napi::Object exports) {
 
 VideoFormat::VideoFormat(const Napi::CallbackInfo &info) : Napi::ObjectWrap<VideoFormat>(info) {}
 
-void VideoFormat::SetVideoFormat(Core *core, const VSVideoFormat *vsvformat) {
-    this->core = core;
-    this->vsvformat = vsvformat;
+Napi::Object VideoFormat::GetProxyObject() {
+    return core->proxyFunctions->Get("VideoFormat").As<Napi::Function>().Call({this->Value()}).As<Napi::Object>();
 }
 
-Napi::Object VideoFormat::CreateVideoFormat(Core *core, const VSVideoFormat *vsvformat) {
-    Napi::Object formatObject = constructor->New({});
-    VideoFormat *format = VideoFormat::Unwrap(formatObject);
-    format->SetVideoFormat(core, vsvformat);
-    Napi::Function proxy = core->proxyFunctions->Get("VideoFormat").As<Napi::Function>();
-    return proxy.Call({formatObject}).As<Napi::Object>();
+VideoFormat *VideoFormat::SetInstance(Core *core, const VSVideoFormat *vsvformat) {
+    this->core = core;
+    this->vsvformat = vsvformat;
+
+    return this;
+}
+
+Napi::Object VideoFormat::CreateInstance(Core *core, const VSVideoFormat *vsvformat) {
+    return VideoFormat::Unwrap(constructor->New({}))->SetInstance(core, vsvformat)->GetProxyObject();
 }
 
 Napi::FunctionReference *VideoFormat::constructor;

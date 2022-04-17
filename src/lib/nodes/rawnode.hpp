@@ -10,15 +10,18 @@ class RawNode : public Napi::ObjectWrap<RawNode> {
     RawNode(const Napi::CallbackInfo &);
     ~RawNode();
 
-    void SetRawNode(Core *core, VSNode *vsnode);
-
-    Napi::Value GetCore(const Napi::CallbackInfo &);
-
-    Napi::Value GetFrames(const Napi::CallbackInfo &);
+    RawNode *SetInstance(Core *core, VSNode *vsnode);
+    static RawNode *CreateInstance(Core *core, VSNode *vsnode);
+    Napi::Object GetProxyObject();
 
     static Napi::FunctionReference *constructor;
     static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
-    Core *core{nullptr};
+
+    Napi::Value GetFrames(const Napi::CallbackInfo &);
+
     VSNode *vsnode{nullptr};
+    Core *core{nullptr};
+  private:
+    Napi::Value GetCore(const Napi::CallbackInfo &);
 };

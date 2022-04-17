@@ -40,8 +40,7 @@ PyScript::PyScript(const Napi::CallbackInfo &info) : Napi::ObjectWrap<PyScript>(
 
     *coreObject = Napi::Weak(info[1].As<Napi::Object>());
 
-    Core *core = Core::Unwrap(coreObject->Value());
-    core->SetCore(NULL, NULL, NULL, this);
+    Core *core = Core::Unwrap(coreObject->Value())->SetInstance(NULL, NULL, NULL, this);
 
     vssapi = getVSScriptAPI(VSSCRIPT_API_VERSION);
     if (!vssapi) {

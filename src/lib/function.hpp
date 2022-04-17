@@ -10,18 +10,16 @@ class Function : public Napi::ObjectWrap<Function> {
     Function(const Napi::CallbackInfo &);
     ~Function();
 
-    void SetFunction(Core *core, Plugin *plugin, VSPluginFunction *vsfunction);
-    Napi::Object GetFunctionObject();
-
-    static Napi::Object CreateFunction(Core *core, Plugin *plugin, VSPluginFunction *vsfunction);
-
-    const char *getName();
+    Function *SetInstance(Core *core, Plugin *plugin, VSPluginFunction *vsfunction);
+    static Napi::Object CreateInstance(Core *core, Plugin *plugin, VSPluginFunction *vsfunction);
+    Napi::Object GetProxyObject();
 
     static Napi::FunctionReference *constructor;
     static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
     VSPluginFunction *vsfunction{nullptr};
-
+    Plugin *plugin{nullptr};
+    Core *core{nullptr};
   private:
     Napi::Value GetCore(const Napi::CallbackInfo &);
     Napi::Value GetPlugin(const Napi::CallbackInfo &);
@@ -34,6 +32,5 @@ class Function : public Napi::ObjectWrap<Function> {
     Napi::Value IsVideoInjectable(const Napi::CallbackInfo &);
     Napi::Value IsAudioInjectable(const Napi::CallbackInfo &);
 
-    Core *core{nullptr};
-    Plugin *plugin{nullptr};
+    const char *getName();
 };

@@ -16,9 +16,15 @@ Napi::Object RawNode::Init(Napi::Env env, Napi::Object exports) {
 
 RawNode::RawNode(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RawNode>(info) {}
 
-void RawNode::SetRawNode(Core *core, VSNode *vsnode) {
+RawNode *RawNode::SetInstance(Core *core, VSNode *vsnode) {
     this->core = core;
     this->vsnode = vsnode;
+
+    return this;
+}
+
+RawNode *RawNode::CreateInstance(Core *core, VSNode *vsnode) {
+    return RawNode::Unwrap(constructor->New({}))->SetInstance(core, vsnode);
 }
 
 Napi::FunctionReference *RawNode::constructor;
@@ -34,5 +40,5 @@ Napi::Value RawNode::GetFrames(const Napi::CallbackInfo &info) {
 }
 
 Napi::Value RawNode::GetCore(const Napi::CallbackInfo &info) {
-    return core->GetCoreObject();
+    return core->GetProxyObject();
 }

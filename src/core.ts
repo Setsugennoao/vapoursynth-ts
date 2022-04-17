@@ -130,6 +130,7 @@ export const CoreProxy = (
     core: CoreIP = new _Core(coreCreationFlags, {
         RawNode: (obj) => obj,
         RawFrame: (obj) => obj,
+        RawFrameEditable: (obj) => obj,
         FrameProps: (obj) => obj,
         FramePropsEditable: (obj) => obj,
         VideoFormat: (obj) => obj,

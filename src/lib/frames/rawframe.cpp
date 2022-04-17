@@ -20,7 +20,12 @@ Napi::Object RawFrame::Init(Napi::Env env, Napi::Object exports) {
 
 RawFrame::RawFrame(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RawFrame>(info) {}
 
-void RawFrame::SetRawNode(Core *core, VSFrame *vsframe) {
+Napi::Object RawFrame::GetProxyObject() {
+    Napi::Function proxyFunction = core->proxyFunctions->Get(constvsframe ? "RawFrame" : "RawFrameEditable").As<Napi::Function>();
+    return proxyFunction.Call({this->Value()}).As<Napi::Object>();
+}
+
+RawFrame *RawFrame::SetInstance(Core *core, VSFrame *vsframe) {
     this->core = core;
 
     if (this->vsframe) core->vsapi->freeFrame(this->vsframe);
@@ -29,9 +34,11 @@ void RawFrame::SetRawNode(Core *core, VSFrame *vsframe) {
     this->vsframe = vsframe;
     this->constvsframe = vsframe;
     this->flags = -1;
+
+    return this;
 }
 
-void RawFrame::SetRawNode(Core *core, const VSFrame *vsframe) {
+RawFrame *RawFrame::SetInstance(Core *core, const VSFrame *vsframe) {
     this->core = core;
 
     if (this->vsframe) core->vsapi->freeFrame(this->vsframe);
@@ -40,6 +47,14 @@ void RawFrame::SetRawNode(Core *core, const VSFrame *vsframe) {
     this->vsframe = nullptr;
     this->constvsframe = vsframe;
     this->flags = 0;
+
+    return this;
+}
+
+RawFrame *RawFrame::CreateInstance(Core *core, const VSFrame *constvsframe, VSFrame *vsframe) {
+    RawFrame *rawframe = RawFrame::Unwrap(constructor->New({}));
+
+    return rawframe->SetInstance(core, constvsframe ? constvsframe : vsframe);
 }
 
 Napi::FunctionReference *RawFrame::constructor;
@@ -53,7 +68,7 @@ void RawFrame::ensureOpen(const Napi::CallbackInfo &info) {
 }
 
 Napi::Value RawFrame::GetCore(const Napi::CallbackInfo &info) {
-    return core->GetCoreObject();
+    return core->GetProxyObject();
 }
 
 Napi::Value RawFrame::GetProps(const Napi::CallbackInfo &info) {
