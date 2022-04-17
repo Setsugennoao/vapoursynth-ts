@@ -2,20 +2,23 @@
 
 #include "core.hpp"
 
+#include "./nodes/rawnode.hpp"
+
 class Plugin : public Napi::ObjectWrap<Plugin> {
   public:
     static Napi::Object Init(Napi::Env, Napi::Object);
     Plugin(const Napi::CallbackInfo &);
     ~Plugin();
 
-    void SetPlugin(Core *core, VSPlugin *vsplugin);
+    void SetPlugin(Core *core, VSPlugin *vsplugin, RawNode *injectedNode);
     Napi::Object GetPluginObject();
 
-    static Napi::Object CreatePlugin(Core *core, VSPlugin *vsplugin);
+    static Napi::Object CreatePlugin(Core *core, VSPlugin *vsplugin, RawNode *injectedNode);
 
     static Napi::FunctionReference *constructor;
     static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
+    RawNode *injectedNode{nullptr};
     VSPlugin *vsplugin{nullptr};
 
   private:

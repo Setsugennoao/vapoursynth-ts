@@ -26,15 +26,16 @@ Napi::Object Plugin::GetPluginObject() {
     return proxy.Call({this->Value()}).As<Napi::Object>();
 }
 
-void Plugin::SetPlugin(Core *core, VSPlugin *vsplugin) {
+void Plugin::SetPlugin(Core *core, VSPlugin *vsplugin, RawNode *injectedNode) {
     this->core = core;
     this->vsplugin = vsplugin;
+    this->injectedNode = injectedNode;
 }
 
-Napi::Object Plugin::CreatePlugin(Core *core, VSPlugin *vsplugin) {
+Napi::Object Plugin::CreatePlugin(Core *core, VSPlugin *vsplugin, RawNode *injectedNode) {
     Napi::Object pluginObject = constructor->New({});
     Plugin *plugin = Plugin::Unwrap(pluginObject);
-    plugin->SetPlugin(core, vsplugin);
+    plugin->SetPlugin(core, vsplugin, injectedNode);
     Napi::Function proxy = core->proxyFunctions->Get("Plugin").As<Napi::Function>();
     return proxy.Call({pluginObject}).As<Napi::Object>();
 }

@@ -109,9 +109,24 @@ Napi::Value Core::GetPlugin(const Napi::CallbackInfo &info) {
 
     std::string name = info[0].As<Napi::String>().Utf8Value();
 
+    RawNode *injectedArg{nullptr};
+    if (info.Length() > 1 && info[0].IsObject()) {
+        Napi::Object injectedNodeObj = info[0].As<Napi::Object>();
+        if (VideoNode::IsParentOf(injectedNodeObj)) { //|| AudioNode::IsParentOf(injectedNodeObj)) {
+            RawNode *node{nullptr};
+
+            if (VideoNode::IsParentOf(injectedNodeObj)) {
+                node = VideoNode::Unwrap(injectedNodeObj)->node;
+            }
+            // else {
+            //     node = AudioNode::Unwrap(nodeObject)->node;
+            // }
+        }
+    }
+
     VSPlugin *vsplugin = vsapi->getPluginByNamespace(name.c_str(), vscore);
 
-    Napi::Object pluginObject = Plugin::CreatePlugin(this, vsplugin);
+    Napi::Object pluginObject = Plugin::CreatePlugin(this, vsplugin, injectedArg);
 
     return pluginObject;
 }

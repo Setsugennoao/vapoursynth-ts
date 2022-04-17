@@ -143,7 +143,7 @@ export interface CoreIP extends Core {
     new (coreCreationFlags: Int, proxies: { [k: string]: (...args: any[]) => any }): CoreIP
     versionNumber: Number
     versionString: String
-    getPlugin(name: keyof stubs.OnlyPluginsCoreProxyI): PluginIP
+    getPlugin(name: keyof stubs.OnlyPluginsCoreProxyI, injectedNode?: VideoNode | AudioNode): PluginIP
 
     prettyPrint: typeof CorePP
     staticAttributes: CoreStaticAttributes
