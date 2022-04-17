@@ -1,11 +1,11 @@
 import util from 'util'
 
+import { CorePP, PluginPP, VideoNodePP } from './classes'
 import { Fraction } from './fractions'
-import { CorePP, PluginPP, VideoNodePP } from './prettyClasses'
 import { AudioNodeIP, Core, CoreIP, FunctionIP, Int, PluginIP, PyScript, stubs, VideoNodeIP } from './types/core'
 import { getAttributes } from './utils'
 
-export const { Core: _Core, PyScript: _PyScript } = require('bindings')('vapoursynthts.node') as {
+export const { Core: CoreBinding, PyScript: PyScriptBinding } = require('bindings')('vapoursynthts.node') as {
     Core: CoreIP
     PyScript: PyScript
 }
@@ -123,11 +123,9 @@ const PluginProxy = (plugin: PluginIP, injected_arg: null | VideoNodeIP | AudioN
             return false
         },
     })
-
-// @ts-ignore
-export const CoreProxy = (
+export const CoreProxy: (flags?: Int, core?: CoreIP) => Core = (
     coreCreationFlags: Int = 0,
-    core: CoreIP = new _Core(coreCreationFlags, {
+    core: CoreIP = new CoreBinding(coreCreationFlags, {
         RawNode: (obj) => obj,
         RawFrame: (obj) => obj,
         RawFrameEditable: (obj) => obj,
@@ -176,6 +174,5 @@ export const PyScriptProxy: PyScript = (...args: any[]) => {
         args.push(CoreProxy())
     }
 
-    // @ts-ignore
-    return new _PyScript(args[0], args[1].__self).core
+    return new PyScriptBinding(args[0], args[1].__self).core
 }

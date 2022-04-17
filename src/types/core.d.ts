@@ -1,10 +1,10 @@
 import { WriteStream } from 'fs'
+import util from 'util'
 
+import { AudioNodePP, CorePP, FunctionPP, PluginPP, VideoNodePP } from '../classes'
 import { ColorFamily, PresetFormat, SampleType } from '../constants'
 import { Fraction } from '../fractions'
-import { AudioNodePP, CorePP, FunctionPP, PluginPP, VideoNodePP } from '../prettyClasses'
 import { stubs } from './core.plugins'
-import { BaseVSProxyI } from './core.proxy'
 import { VideoFormat } from './interfaces'
 
 export * from './core.plugins.d'
@@ -53,12 +53,9 @@ export interface PyScript extends Core {
 
  * This is a limitation of the language as it doesn't support operator overloading and they can only be done on primitives.
  */
-// type _VideoNodeI = number & VideoNodeI
-// @ts-ignore
-export interface VideoNode extends VideoNodeI {} //_VideoNodeI {}
-// type _AudioNodeI = number & AudioNodeI
-// @ts-ignore
-export interface AudioNode extends AudioNode {} // _AudioNodeI {}
+export interface VideoNode extends VideoNodeI {}
+
+export interface AudioNode extends AudioNodeI {}
 
 export interface Function extends BaseVSProxyI {
     readonly signature: string
@@ -366,3 +363,19 @@ type AudioNodeI = BaseVSProxyI &
     OpaqueAudioNode
 
 /**********************************************************************************************************************/
+
+export type GetCreateProxyT<T extends PrivateIP> = StaticInstance<T, T['prettyPrint']> & T['staticAttributes']
+
+export interface StaticInstance<T, S> extends BaseVSProxyI {
+    __self: T
+    __innerInstance: T
+    __printInstance: S | undefined
+    __setPrintInstance(): S
+
+    [util.inspect.custom]: () => S
+}
+
+export interface BaseVSProxyI {
+    core: Core
+    toString(): string
+}

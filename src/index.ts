@@ -1,6 +1,6 @@
 import * as constants from './constants'
-import { CoreProxy, PyScriptProxy } from './core'
-import { Core, CoreIP } from './types/core'
+import { CoreProxy, PyScriptProxy } from './proxies'
+import { Core } from './types/core'
 
 export * from './constants'
 export { VideoNode, AudioNode, VideoTuple } from './types/core'
@@ -27,6 +27,6 @@ Object.assign(this, {
 
 export { core, setCoreCreationFlags, PyScriptProxy as PyScript }
 
-export const { getOutput, getOutputs, clearOutput, clearOutputs } = (<any>(<unknown>this)).core as CoreIP
+export const { getOutput, getOutputs, clearOutput, clearOutputs } = <Core>(<any>(<unknown>this)).core
 
 export default (<unknown>this) as typeof import('.')
