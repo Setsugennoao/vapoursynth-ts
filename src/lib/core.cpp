@@ -338,9 +338,10 @@ void Core::ClearOutputs(const Napi::CallbackInfo &info) {
 
 void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
     Napi::Env env = object->Env();
+    Napi::Array keys = object->GetPropertyNames();
 
-    for(int i = 0, j = object->GetPropertyNames().Length(); i < j; i++) {
-        const char *key = object->Get(i).As<Napi::String>().Utf8Value().c_str();
+    for(uint32_t i = 0u, j = keys.Length(); i < j; i++) {
+        std::string key = keys.Get(i).As<Napi::String>().Utf8Value();
 
         Napi::Value value = object->Get(key);
 
@@ -362,20 +363,21 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
 
         int error{0};
 
-
-        for(int k = 0, l = values.Length(); k < l; k++) {
-            Napi::Value value = values.Get(k);
+        for(uint32_t k = 0u, l = values.Length(); k < l; k++) {
+            Napi::Value value = (
+                values.Get(k).IsObject() && !values.Get(k).As<Napi::Object>().Get("__self").IsUndefined()
+            ) ? values.Get(k).As<Napi::Object>().Get("__self") : values.Get(k);
 
             if (value.IsNumber()) {
                 if (NapiIsInteger(env, value)) {
-                    error = vsapi->mapSetInt(inmap, key, value.As<Napi::Number>().Int64Value(), 1);
+                    error = vsapi->mapSetInt(inmap, key.c_str(), value.As<Napi::Number>().Int64Value(), 1);
                 } else {
-                    error = vsapi->mapSetFloat(inmap, key, value.As<Napi::Number>().DoubleValue(), 1);
+                    error = vsapi->mapSetFloat(inmap, key.c_str(), value.As<Napi::Number>().DoubleValue(), 1);
                 }
             } else if (isString || isRawData) {
                 const char *data = value.As<Napi::String>().Utf8Value().c_str();
 
-                error = vsapi->mapSetData(inmap, key, data, strlen(data), isString ? dtUtf8 : dtBinary, 1);
+                error = vsapi->mapSetData(inmap, key.c_str(), data, strlen(data), isString ? dtUtf8 : dtBinary, 1);
             } else if (VideoNode::IsParentOf(value)) { //|| AudioNode::IsParentOf(value)) {
                 Napi::Object nodeObject = value.As<Napi::Object>();
 
@@ -388,7 +390,7 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
                 //     rawnode = AudioNode::Unwrap(nodeObject)->node;
                 // }
 
-                error = vsapi->mapSetNode(inmap, key, rawnode->vsnode, 1);
+                error = vsapi->mapSetNode(inmap, key.c_str(), rawnode->vsnode, 1);
             } else if (VideoFrame::IsParentOf(value)) { //|| AudioFrame::IsParentOf(value)) {
                 Napi::Object frameObject = value.As<Napi::Object>();
 
@@ -401,16 +403,15 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
                 //     frame = AudioFrame::Unwrap(frameObject)->rawframe;
                 // }
 
-                error = vsapi->mapSetFrame(inmap, key, rawframe->vsframe, 1);
-            } else if (Function::IsParentOf(value)) {
-                // Function *func = Function::Unwrap(value.As<Napi::Object>());
-                // vsapi->mapSetFunction(inmap, key, func->vsfunction, 1);
+                error = vsapi->mapSetFrame(inmap, key.c_str(), rawframe->vsframe, 1);
+            // } else if (Function::IsParentOf(value)) {
+    //             // Function *func = Function::Unwrap(value.As<Napi::Object>());
+    //             // vsapi->mapSetFunction(inmap, key.c_str(), func->vsfunction, 1);
             } else {
                 std::ostringstream ss;
                 ss << "Argument " << key << " was passed an unsupported type";
 
-                Napi::Error::New(env, ss.str()).ThrowAsJavaScriptException();
-                return;
+                throw Napi::Error::New(env, ss.str());
             }
 
             if (error) break;
@@ -420,14 +421,13 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
             std::ostringstream ss;
             ss << "Not all values are of the same type in " << key;
 
-            Napi::Error::New(env, ss.str()).ThrowAsJavaScriptException();
+            throw Napi::Error::New(env, ss.str());
         }
     }
 }
 
 void Core::TypedObjectToVSMap(Napi::Object *object, std::pair<char *, char *> *objectKeyTypes, VSMap *inmap) {
     Napi::Env env = object->Env();
-
 }
 
 Napi::Value Core::VSMapToObject(VSMap *vsmap, bool shouldFlatten) {
@@ -477,12 +477,15 @@ Napi::Value Core::VSMapToObject(VSMap *vsmap, bool shouldFlatten) {
                     // retObjValue = JSFunction::CreateInstance(env, vsapi->mapGetFunction(vsmap, retKey, index, NULL))
                     break;
 
-                if (shouldFlatten && numKeys == 1) {
-                    return retObjValue;
-                }
             }
 
-            if (numElements > 1) retObjArray.Set(retObjArray.Length(), retObjValue);
+            if (shouldFlatten && numKeys == 1) {
+                return retObjValue;
+            }
+
+            if (numElements > 1) {
+                retObjArray.Set(retObjArray.Length(), retObjValue);
+            }
         }
 
         if (numElements > 1) {
