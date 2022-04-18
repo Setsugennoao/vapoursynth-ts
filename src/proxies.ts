@@ -75,11 +75,12 @@ const VideoNodeProxy = (node: VideoNodeIP) =>
                 return node.core.getPlugin(name, node)
             }
 
-            if (!Number.isNaN(parseInt(name)) || name.includes(':')) {
+            const asnumber = parseInt(name)
+            const isnan = isNaN(asnumber)
+
+            if (!isnan || name.includes(':')) {
                 if (name.includes(':')) {
                     let [start, stop, step] = parseSliceString(name, node.numFrames)
-
-                    console.log({ start, stop, step })
 
                     if (step < 0) [start, stop] = [stop, start]
 
@@ -105,9 +106,9 @@ const VideoNodeProxy = (node: VideoNodeIP) =>
                     }
 
                     return ret
-                } else if (!Number.isNaN(parseInt(name))) {
-                    if (!Number.isSafeInteger(parseInt(name))) throw Error('Index overflows!')
-                    const n = parseInt(name) < 0 ? node.numFrames + parseInt(name) : parseInt(name)
+                } else if (!isnan) {
+                    if (!Number.isSafeInteger(asnumber)) throw Error('Index overflows!')
+                    const n = asnumber < 0 ? node.numFrames + asnumber : asnumber
 
                     if (n < 0 || (node.numFrames > 0 && n >= node.numFrames)) {
                         throw RangeError('List index out of bounds')
