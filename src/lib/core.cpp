@@ -344,36 +344,30 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
     for(uint32_t i = 0u, j = keys.Length(); i < j; i++) {
         std::string key = keys.Get(i).As<Napi::String>().Utf8Value();
 
-        Napi::Value value = object->Get(key);
+        Napi::Value objValue = object->Get(key);
 
-        Napi::Array values = Napi::Array::New(env);
+        Napi::Array values = objValue.IsArray() ? objValue.As<Napi::Array>() : Napi::Array::New(env);
 
-        bool isString = value.IsString();
-        bool isRawData = value.IsBuffer() || value.IsDataView() || value.IsArrayBuffer() || value.IsTypedArray();
-
-        if (
-            isRawData || VideoFrame::IsParentOf(value) || //AudioFrame::IsParentOf(value) ||
-            isString  || VideoNode::IsParentOf(value) //|| AudioNode::IsParentOf(value)
-        ) {
-            values.Set(0u, value);
-        } else if (value.IsArray()) {
-            values = value.As<Napi::Array>();
-        } else {
-            values.Set(0u, value);
-        }
+        if (!objValue.IsArray()) values.Set(0u, objValue);
 
         int error{0};
 
         for(uint32_t k = 0u, l = values.Length(); k < l; k++) {
+            Napi::Value kObj = values.Get(k);
             Napi::Value value = (
-                values.Get(k).IsObject() && !values.Get(k).As<Napi::Object>().Get("__self").IsUndefined()
-            ) ? values.Get(k).As<Napi::Object>().Get("__self") : values.Get(k);
+                kObj.IsObject() && !kObj.As<Napi::Object>().Get("__self").IsUndefined()
+            ) ? kObj.As<Napi::Object>().Get("__self") : kObj;
 
-            if (value.IsNumber()) {
-                if (NapiIsInteger(env, value)) {
-                    error = vsapi->mapSetInt(inmap, key.c_str(), value.As<Napi::Number>().Int64Value(), 1);
+            bool isString = value.IsString();
+            bool isRawData = value.IsBuffer() || value.IsDataView() || value.IsArrayBuffer();
+
+            if (value.IsNumber() || value.IsBoolean()) {
+                Napi::Number val = value.IsBoolean() ? value.ToNumber() : value.As<Napi::Number>();
+
+                if (NapiIsInteger(env, val)) {
+                    error = vsapi->mapSetInt(inmap, key.c_str(), val.Int64Value(), 1);
                 } else {
-                    error = vsapi->mapSetFloat(inmap, key.c_str(), value.As<Napi::Number>().DoubleValue(), 1);
+                    error = vsapi->mapSetFloat(inmap, key.c_str(), val.DoubleValue(), 1);
                 }
             } else if (isString || isRawData) {
                 const char *data = value.As<Napi::String>().Utf8Value().c_str();

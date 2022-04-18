@@ -99,6 +99,8 @@ Napi::Value Function::Call(const Napi::CallbackInfo &info) {
     } catch(Napi::Error err) {
         err.ThrowAsJavaScriptException();
     }
+
+    return env.Null();
 }
 
 Napi::Value Function::GetCore(const Napi::CallbackInfo &info) {

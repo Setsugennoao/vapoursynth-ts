@@ -1,6 +1,8 @@
 import { ColorFamily, SampleType } from '../constants'
+import { Int } from './core'
 
 export interface VideoFormat {
+    id: Int
     colorFamily: ColorFamily
     sampleType: SampleType
     bytesPerSample: number
