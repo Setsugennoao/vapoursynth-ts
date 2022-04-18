@@ -4,6 +4,22 @@ import os from 'os'
 import { Int } from './types/core'
 import { DefineProperty } from './types/utils'
 
+export const parseNumber = (n: any) => (isNaN(parseInt(n)) ? NaN : Number(n))
+
+export function parseSliceString(stringSlice: string, length: Int): [number, number, number] {
+    let [start, end, step] = stringSlice.split(':').map((s) => parseNumber(s))
+
+    start = isNaN(start) ? 0 : start < 0 ? length + start : start
+    end = isNaN(end) ? length : end < 0 ? length + end : end > length ? length : end
+    step = isNaN(step) ? 1 : step
+
+    if (step === 0) {
+        throw RangeError('Step can not be zero!')
+    }
+
+    return [start, end, step]
+}
+
 export function* range(start: Int, stop?: Int, step: Int = 1) {
     if (stop == null) {
         stop = start

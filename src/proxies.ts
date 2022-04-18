@@ -2,8 +2,10 @@ import util from 'util'
 
 import { CorePP, PluginPP, VideoNodePP } from './classes'
 import { Fraction } from './fractions'
-import { AudioNodeIP, Core, CoreIP, FunctionIP, Int, PluginIP, PyScript, stubs, VideoNodeIP } from './types/core'
-import { getAttributes } from './utils'
+import {
+    AudioNodeIP, Core, CoreIP, FunctionIP, Int, PluginIP, PyScript, stubs, VideoNode, VideoNodeIP
+} from './types/core'
+import { getAttributes, parseSliceString } from './utils'
 
 export const { Core: CoreBinding, PyScript: PyScriptBinding } = require('bindings')('vapoursynthts.node') as {
     Core: CoreIP
@@ -71,6 +73,50 @@ const VideoNodeProxy = (node: VideoNodeIP) =>
         __getter: (name: keyof stubs.OnlyPluginsNodeProxyI) => {
             if (node.core.plugins.includes(name)) {
                 return node.core.getPlugin(name, node)
+            }
+
+            if (!Number.isNaN(parseInt(name)) || name.includes(':')) {
+                if (name.includes(':')) {
+                    let [start, stop, step] = parseSliceString(name, node.numFrames)
+
+                    console.log({ start, stop, step })
+
+                    if (step < 0) [start, stop] = [stop, start]
+
+                    let ret = <VideoNode>(<unknown>node)
+
+                    if (step > 0 && stop !== null) stop -= 1
+                    if (step < 0 && start !== null) start += 1
+
+                    if (start !== null && stop !== null) {
+                        ret = node.core.std.Trim({ clip: ret, first: start, last: stop })
+                    } else if (start !== null) {
+                        ret = node.core.std.Trim({ clip: ret, first: start })
+                    } else if (stop !== null) {
+                        ret = node.core.std.Trim({ clip: ret, last: stop })
+                    }
+
+                    if (step < 0) {
+                        ret = node.core.std.Reverse({ clip: ret })
+                    }
+
+                    if (Math.abs(step) != 1) {
+                        ret = node.core.std.SelectEvery({ clip: ret, cycle: Math.abs(step), offsets: [0] })
+                    }
+
+                    return ret
+                } else if (!Number.isNaN(parseInt(name))) {
+                    if (!Number.isSafeInteger(parseInt(name))) throw Error('Index overflows!')
+                    const n = parseInt(name) < 0 ? node.numFrames + parseInt(name) : parseInt(name)
+
+                    if (n < 0 || (node.numFrames > 0 && n >= node.numFrames)) {
+                        throw RangeError('List index out of bounds')
+                    }
+
+                    return node.core.std.Trim({ clip: <VideoNode>(<unknown>node), first: n, length: 1 })
+                } else {
+                    throw TypeError('Index must be int or string slice!')
+                }
             }
 
             throw ReferenceError(

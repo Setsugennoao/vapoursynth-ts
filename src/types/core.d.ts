@@ -317,6 +317,7 @@ export class AudioNodeStaticAttributes {}
 /**********************************************************************************************************************/
 
 type IndexableVideoNode = {
+    [key: Int]: VideoNode
     [key: `${Int}`]: VideoNode
     [key: `${Int}:${Int}`]: VideoNode
     [key: `${Int}:`]: VideoNode
@@ -328,14 +329,15 @@ type IndexableVideoNode = {
 }
 
 type IndexableAudioNode = {
-    [key: `${Int}`]: VideoNode
-    [key: `${Int}:${Int}`]: VideoNode
-    [key: `${Int}:`]: VideoNode
-    [key: `:${Int}`]: VideoNode
-    [key: `${Int}:${Int}:${Int}`]: VideoNode
-    [key: `${Int}::${Int}`]: VideoNode
-    [key: `:${Int}:${Int}`]: VideoNode
-    [key: `::${Int}`]: VideoNode
+    [key: Int]: AudioNode
+    [key: `${Int}`]: AudioNode
+    [key: `${Int}:${Int}`]: AudioNode
+    [key: `${Int}:`]: AudioNode
+    [key: `:${Int}`]: AudioNode
+    [key: `${Int}:${Int}:${Int}`]: AudioNode
+    [key: `${Int}::${Int}`]: AudioNode
+    [key: `:${Int}:${Int}`]: AudioNode
+    [key: `::${Int}`]: AudioNode
 }
 
 declare const nodeOpaqueSymbol: unique symbol
