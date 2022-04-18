@@ -21,6 +21,7 @@ class VideoNode : public Napi::ObjectWrap<VideoNode> {
     static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
     int getFrameSize();
+    static int getFrameSize(int width, int height, const VSVideoFormat *videoformat);
 
     const VSVideoInfo *vsvideoinfo{nullptr};
     RawNode *rawnode{nullptr};

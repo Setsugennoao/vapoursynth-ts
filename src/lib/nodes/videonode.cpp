@@ -130,17 +130,21 @@ VideoNode::~VideoNode() {
 }
 
 int VideoNode::getFrameSize() {
-    if (!vsvideoinfo) {
+    return getFrameSize(vsvideoinfo->width, vsvideoinfo->height, &vsvideoinfo->format);
+}
+
+int VideoNode::getFrameSize(int width, int height, const VSVideoFormat *format) {
+    if (!width || !height || !format) {
         return 0;
     }
 
-    int frame_size = (vsvideoinfo->width * vsvideoinfo->format.bytesPerSample) >> vsvideoinfo->format.subSamplingW;
+    int frame_size = (width * format->bytesPerSample) >> format->subSamplingW;
     if (frame_size) {
-        frame_size *= vsvideoinfo->height;
-        frame_size >>= vsvideoinfo->format.subSamplingH;
+        frame_size *= height;
+        frame_size >>= format->subSamplingH;
         frame_size *= 2;
     }
-    frame_size += vsvideoinfo->width * vsvideoinfo->format.bytesPerSample * vsvideoinfo->height;
+    frame_size += width * format->bytesPerSample * height;
 
     return frame_size;
 }
