@@ -13,6 +13,7 @@
 #include "./nodes/videonode.hpp"
 // #include "./nodes/audionode.hpp"
 
+#include "./utils/sharenodes.cpp"
 
 Napi::Object Core::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "Core", {
@@ -379,18 +380,16 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
 
                 error = vsapi->mapSetData(inmap, key.c_str(), data, strlen(data), isString ? dtUtf8 : dtBinary, 1);
             } else if (VideoNode::IsParentOf(value)) { //|| AudioNode::IsParentOf(value)) {
-                Napi::Object nodeObject = value.As<Napi::Object>();
-
-                RawNode *rawnode{nullptr};
+                VSNode *outnode{nullptr};
 
                 if (VideoNode::IsParentOf(value)) {
-                    rawnode = VideoNode::Unwrap(nodeObject)->rawnode;
+                    outnode = ShareVideoNode(this, VideoNode::Unwrap(value.As<Napi::Object>()));
                 }
                 // else {
-                //     rawnode = AudioNode::Unwrap(nodeObject)->node;
+                //     outnode = ShareAudioNode(this, AudioNode::Unwrap(value.As<Napi::Object>()));
                 // }
 
-                error = vsapi->mapSetNode(inmap, key.c_str(), rawnode->vsnode, 1);
+                error = vsapi->mapSetNode(inmap, key.c_str(), outnode, 1);
             } else if (VideoFrame::IsParentOf(value)) { //|| AudioFrame::IsParentOf(value)) {
                 Napi::Object frameObject = value.As<Napi::Object>();
 

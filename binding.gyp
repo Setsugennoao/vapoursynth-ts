@@ -26,7 +26,8 @@
             "./src/lib/plugin.cpp", "./src/lib/function.cpp",
             "./src/lib/formats.cpp",  # "./src/lib/props.cpp",
             "./src/lib/frames/rawframe.cpp", "./src/lib/frames/videoframe.cpp",  # "./src/lib/frames/audioframe.cpp",
-            "./src/lib/nodes/rawnode.cpp", "./src/lib/nodes/videonode.cpp"  # , "./src/lib/nodes/audionode.cpp",
+            "./src/lib/nodes/rawnode.cpp", "./src/lib/nodes/videonode.cpp",  # "./src/lib/nodes/audionode.cpp",
+            "./src/lib/utils/sharenodes.cpp"
         ],
         'include_dirs': [
             '<(VS_SDK)/include/vapoursynth',
@@ -91,7 +92,8 @@
                     "-Wsign-conversion",         # warn on sign conversions
                     "-Wnull-dereference",        # warn if a null dereference is detected
                     "-Wdouble-promotion",        # warn if float is implicit promoted to double
-                    "-Wformat=2",                # warn on security issues around functions that format output (ie printf)
+                    # warn on security issues around functions that format output (ie printf)
+                    "-Wformat=2",
 
                     # GCC Warnings
                     "-Wmisleading-indentation",  # warn if indentation implies blocks where blocks do not exist
