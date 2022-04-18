@@ -75,10 +75,9 @@ const VideoNodeProxy = (node: VideoNodeIP) =>
                 return node.core.getPlugin(name, node)
             }
 
-            const asnumber = parseInt(name)
-            const isnan = isNaN(asnumber)
+            const asnumber = Number(name)
 
-            if (!isnan || name.includes(':')) {
+            if (!isNaN(asnumber) || name.includes(':')) {
                 if (name.includes(':')) {
                     let [start, stop, step] = parseSliceString(name, node.numFrames)
 
@@ -106,16 +105,19 @@ const VideoNodeProxy = (node: VideoNodeIP) =>
                     }
 
                     return ret
-                } else if (!isnan) {
-                    if (!Number.isSafeInteger(asnumber)) throw Error('Index overflows!')
-                    const n = asnumber < 0 ? node.numFrames + asnumber : asnumber
+                } else {
+                    if (Number.isInteger(asnumber)) {
+                        if (!Number.isSafeInteger(asnumber)) throw Error('Index overflows!')
 
-                    if (n < 0 || (node.numFrames > 0 && n >= node.numFrames)) {
-                        throw RangeError('List index out of bounds')
+                        const n = asnumber < 0 ? node.numFrames + asnumber : asnumber
+
+                        if (n < 0 || (node.numFrames > 0 && n >= node.numFrames)) {
+                            throw RangeError('List index out of bounds')
+                        }
+
+                        return node.core.std.Trim({ clip: <VideoNode>(<unknown>node), first: n, length: 1 })
                     }
 
-                    return node.core.std.Trim({ clip: <VideoNode>(<unknown>node), first: n, length: 1 })
-                } else {
                     throw TypeError('Index must be int or string slice!')
                 }
             }
