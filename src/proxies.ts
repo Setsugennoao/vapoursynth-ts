@@ -168,8 +168,10 @@ export const CoreProxy: (flags?: Int, core?: CoreIP) => Core = (
 // @ts-ignore
 export const PyScriptProxy: PyScript = (...args: any[]) => {
     if (args.length == 1 || (args.length == 2 && typeof args[0] === 'string' && args[1] instanceof Buffer)) {
-        args.push(CoreProxy())
+        // @ts-ignore
+        args.push(CoreProxy().__self)
     }
 
-    return new PyScriptBinding(args[0], args[1].__self).core
+    // @ts-ignore
+    return new PyScriptBinding(...args).core
 }
