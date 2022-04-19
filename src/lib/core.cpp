@@ -464,7 +464,7 @@ Napi::Value Core::VSMapToObject(VSMap *vsmap, bool shouldFlatten) {
                     retObjValue = VideoFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL));
                     break;
                 case ptAudioFrame:
-                    // retObjValue = AudioFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL), nullptr);
+                    // retObjValue = AudioFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL));
                     break;
                 case ptFunction:
                     // retObjValue = JSFunction::CreateInstance(env, vsapi->mapGetFunction(vsmap, retKey, index, NULL))

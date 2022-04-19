@@ -30,8 +30,7 @@ class RawFrame : public Napi::ObjectWrap<RawFrame> {
     const VSFrame *constvsframe{nullptr};
     VSFrame *vsframe{nullptr};
     Core *core{nullptr};
+    int flags{-1};
   private:
     Napi::Value GetCore(const Napi::CallbackInfo &);
-
-    int flags{-1};
 };

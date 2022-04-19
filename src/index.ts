@@ -18,8 +18,7 @@ let coreCreationFlags: constants.CoreCreationFlags = constants.CoreCreationFlags
 const setCoreCreationFlags = (...flags: constants.CoreCreationFlags[]) =>
     (coreCreationFlags = flags.reduce((prev, curr) => prev | curr, constants.CoreCreationFlags.None))
 
-// @ts-ignore
-Object.assign(this, {
+Object.assign(module.exports, {
     get core() {
         return core ?? (core = CoreProxy(coreCreationFlags))
     },
