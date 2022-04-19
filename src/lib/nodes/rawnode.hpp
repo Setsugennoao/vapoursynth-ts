@@ -17,9 +17,6 @@ class RawNode : public Napi::ObjectWrap<RawNode> {
     static Napi::FunctionReference *constructor;
     static bool IsParentOf(Napi::Value &value) { return value.IsObject() && value.As<Napi::Object>().InstanceOf(constructor->Value()); }
 
-
-    Napi::Value GetFrames(const Napi::CallbackInfo &);
-
     VSNode *vsnode{nullptr};
     Core *core{nullptr};
   private:

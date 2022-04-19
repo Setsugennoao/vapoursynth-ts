@@ -2,8 +2,7 @@
 
 Napi::Object RawNode::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "RawNode", {
-        InstanceAccessor<&RawNode::GetCore>("core"),
-        InstanceMethod<&RawNode::GetFrames>("frames")
+        InstanceAccessor<&RawNode::GetCore>("core")
     });
 
     constructor = new Napi::FunctionReference();
@@ -33,10 +32,6 @@ RawNode::~RawNode() {
     if (core && vsnode) {
         core->vsapi->freeNode(vsnode);
     }
-}
-
-Napi::Value RawNode::GetFrames(const Napi::CallbackInfo &info) {
-    return Napi::Value::From(info.Env(), "frames"); // TODO
 }
 
 Napi::Value RawNode::GetCore(const Napi::CallbackInfo &info) {
