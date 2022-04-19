@@ -642,6 +642,13 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/bindings@1.5.1":
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@types/bindings/-/bindings-1.5.1.tgz#bc9c00f188fc0af4b0a18d065aaa145e32498784"
+  integrity sha512-8HzueDeoxGXdsJ0Ep7TOXHGN+woRTWa1bAds30r5we7PCC3P5zrSTRknePLn/KYAubgQv5t/1zkonnStHLCWOg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/estree@*":
   version "0.0.51"
   resolved "https://registry.npmjs.org/@types/estree/-/estree-0.0.51.tgz"
