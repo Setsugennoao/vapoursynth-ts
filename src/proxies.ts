@@ -36,7 +36,7 @@ const createProxy = (objtowrap: any, cppobj: any, values: any): any => {
                     const property = cppobj[key]
                     switch (typeof property) {
                         case 'function':
-                            return nativeFunctionProxy(cppobj[key], cppobj, key)
+                            return (wrapper[key] = nativeFunctionProxy(cppobj[key], cppobj, key))
                         default:
                             return property
                     }
