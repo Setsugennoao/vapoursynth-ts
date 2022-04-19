@@ -10,6 +10,7 @@ Napi::Object VideoFrame::Init(Napi::Env env, Napi::Object exports) {
         InstanceAccessor<&VideoFrame::GetWidth>("width"),
         InstanceAccessor<&VideoFrame::GetHeight>("height"),
         InstanceAccessor<&VideoFrame::GetFormat>("format"),
+        InstanceMethod<&VideoFrame::Close>("close"),
     });
 
     constructor = new Napi::FunctionReference();
@@ -75,6 +76,10 @@ Napi::Value VideoFrame::GetFormat(const Napi::CallbackInfo &info) {
     return VideoFormat::CreateInstance(rawframe->core, rawframe->core->vsapi->getVideoFrameFormat(
         rawframe->flags & 1 ? rawframe->vsframe : rawframe->constvsframe
     ));
+}
+
+void VideoFrame::Close(const Napi::CallbackInfo &info) {
+    this->~VideoFrame();
 }
 
 Napi::Value VideoFrame::GetCore(const Napi::CallbackInfo &info) {

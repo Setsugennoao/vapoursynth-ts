@@ -53,7 +53,9 @@ export interface PyScript extends Core {
 
  * This is a limitation of the language as it doesn't support operator overloading and they can only be done on primitives.
  */
+
 export interface VideoNode extends VideoNodeI {}
+export interface VideoFrame extends VideoFrameI {}
 
 export interface AudioNode extends AudioNodeI {}
 
@@ -256,6 +258,10 @@ export class VideoNodeCppAttributes {
     ): void
 }
 
+export class VideoFrameCppAttributes {
+    close: () => void
+}
+
 export class AudioNodeCppAttributes {}
 
 /**********************************************************************************************************************/
@@ -312,6 +318,8 @@ export class VideoNodeStaticAttributes {
     readonly flags: Int
 }
 
+export class VideoFrameStaticAttributes {}
+
 export class AudioNodeStaticAttributes {}
 
 /**********************************************************************************************************************/
@@ -358,6 +366,9 @@ type VideoNodeI = BaseVSProxyI &
     VideoNodeStaticAttributes &
     stubs.OnlyPluginsNodeProxyI &
     OpaqueVideoNode
+
+type VideoFrameI = BaseVSProxyI & VideoFrameCppAttributes & VideoFrameStaticAttributes
+
 type AudioNodeI = BaseVSProxyI &
     AudioNodeCppAttributes &
     AudioNodeStaticAttributes &

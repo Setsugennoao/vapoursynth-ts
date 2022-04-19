@@ -28,4 +28,6 @@ class VideoFrame : public Napi::ObjectWrap<VideoFrame> {
     Napi::Value GetWidth(const Napi::CallbackInfo &);
     Napi::Value GetHeight(const Napi::CallbackInfo &);
     Napi::Value GetFormat(const Napi::CallbackInfo &);
+
+    void Close(const Napi::CallbackInfo &);
 };
