@@ -55,20 +55,26 @@ VideoFrame::~VideoFrame() {
 Napi::Value VideoFrame::GetWidth(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    return Napi::Value::From(env, rawframe->core->vsapi->getFrameWidth(rawframe->vsframe, 0));
+    return Napi::Number::From(env, rawframe->core->vsapi->getFrameWidth(
+        rawframe->flags & 1 ? rawframe->vsframe : rawframe->constvsframe, 0
+    ));
 }
 
 Napi::Value VideoFrame::GetHeight(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
 
-    return Napi::Value::From(env, rawframe->core->vsapi->getFrameHeight(rawframe->vsframe, 0));
+    return Napi::Number::From(env, rawframe->core->vsapi->getFrameHeight(
+        rawframe->flags & 1 ? rawframe->vsframe : rawframe->constvsframe, 0
+    ));
 }
 
 Napi::Value VideoFrame::GetFormat(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    return VideoFormat::CreateInstance(rawframe->core, rawframe->core->vsapi->getVideoFrameFormat(rawframe->vsframe));
+    return VideoFormat::CreateInstance(rawframe->core, rawframe->core->vsapi->getVideoFrameFormat(
+        rawframe->flags & 1 ? rawframe->vsframe : rawframe->constvsframe
+    ));
 }
 
 Napi::Value VideoFrame::GetCore(const Napi::CallbackInfo &info) {
