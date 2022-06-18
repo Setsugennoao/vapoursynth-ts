@@ -1,8 +1,8 @@
 #pragma once
 
-#include <VSHelper4.h>
-#include <VSScript4.h>
-#include <VapourSynth4.h>
+#include <vapoursynth/VSHelper4.h>
+#include <vapoursynth/VSScript4.h>
+#include <vapoursynth/VapourSynth4.h>
 #include <napi.h>
 
 #include <sstream>

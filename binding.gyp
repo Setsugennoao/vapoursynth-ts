@@ -30,7 +30,7 @@
             "./src/lib/utils/sharenodes.cpp"
         ],
         'include_dirs': [
-            '<(VS_SDK)/include/vapoursynth',
+            '<(VS_SDK)/include',
             '<!@(node -p "require(\'node-addon-api\').include")'
         ],
         'dependencies': [
@@ -117,7 +117,7 @@
                             # MSVC Warnings
                             "/experimental:external",   # disable warnings on external headers
                             "/external:W0",
-                            "/external:I <(VS_SDK)/include/vapoursynth;<!@(node -p \"require('node-addon-api').include\")",
+                            "/external:I <(VS_SDK)/include;<!@(node -p \"require('node-addon-api').include\")",
                             "/external:anglebrackets",
                             "/Wall",                    # all warnings,
                             "/wd5044",                  # include path missing

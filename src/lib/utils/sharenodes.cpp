@@ -4,7 +4,7 @@
 #include "../nodes/videonode.hpp"
 // #include "../nodes/audionode.hpp"
 
-#include <VSHelper4.h>
+#include <vapoursynth/VSHelper4.h>
 
 static const VSFrame *VS_CC ShareVideoNodeGetFrame(int n, int activationReason, void *instanceData, void **frameData, VSFrameContext *frameCtx, VSCore *core, const VSAPI *vsapi) {
     RawNode *rawnode = reinterpret_cast<RawNode *>(instanceData);
