@@ -148,7 +148,7 @@ const FunctionProxy = (func: FunctionIP) =>
     createProxy(
         function (...args: any[]) {
             try {
-                func.Call(...args)
+                return func.Call(...args)
             } catch (e: any) {
                 throw e
             }
