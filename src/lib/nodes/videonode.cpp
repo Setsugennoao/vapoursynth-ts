@@ -1,23 +1,17 @@
 #include "../formats.hpp"
 
-#include "videonode.hpp"
+#include "../frames/videoframe.hpp"
 
+#include "videonode.hpp"
 /**********************************************************************************************************************/
 
 class VideoFrameWorker : public Napi::AsyncWorker {
   public:
-    VideoFrameWorker(VideoNode *vnode, int32_t frameNumber, Napi::Buffer<char> &buffer, bool ownBuffer):
-        Napi::AsyncWorker(vnode->Env()), ownBuffer(ownBuffer), vnode(vnode), vsapi(vnode->rawnode->core->vsapi),
-        frameNumber(frameNumber), bufferHandle(Napi::Persistent(buffer)), outBuffer(buffer.Data()),
-        deferred(Napi::Promise::Deferred::New(vnode->Env())) {}
-    VideoFrameWorker(VideoNode *vnode, int32_t frameNumber, Napi::Buffer<char> &buffer, bool ownBuffer, Napi::Function &callback):
-        Napi::AsyncWorker(callback), ownBuffer(ownBuffer), vnode(vnode), vsapi(vnode->rawnode->core->vsapi),
-        frameNumber(frameNumber), bufferHandle(Napi::Persistent(buffer)), outBuffer(buffer.Data()),
-        deferred(Napi::Promise::Deferred::New(vnode->Env())) {}
-
-    ~VideoFrameWorker() {
-        if (ownBuffer) bufferHandle.Unref();
-    }
+    VideoFrameWorker(VideoNode *vnode, int32_t frameNumber):
+        Napi::AsyncWorker(vnode->Env()), vnode(vnode), vsapi(vnode->rawnode->core->vsapi),
+        frameNumber(frameNumber), deferred(Napi::Promise::Deferred::New(vnode->Env())),
+        videoframe(VideoFrame::CreateInstance(vnode->rawnode->core, (VSFrame*)nullptr)) {}
+    ~VideoFrameWorker() {}
 
     void Execute() {
         char errMsg[1024];
@@ -30,24 +24,11 @@ class VideoFrameWorker : public Napi::AsyncWorker {
             return;
         }
 
-        for (int p = 0; p < vnode->vsvideoinfo->format.numPlanes; p++) {
-            ptrdiff_t stride = vsapi->getStride(frame, p);
-            const uint8_t *readPtr = vsapi->getReadPtr(frame, p);
-            int rowSize = vsapi->getFrameWidth(frame, p) * vnode->vsvideoinfo->format.bytesPerSample;
-            int height = vsapi->getFrameHeight(frame, p);
 
-            for (int y = 0; y < height; y++) {
-                memmove(outBuffer, readPtr, rowSize);
-                outBuffer += rowSize;
-                readPtr += stride;
-            }
-        }
-
-        vnode->rawnode->core->vsapi->freeFrame(frame);
     }
 
     void OnOK() {
-        deferred.Resolve(bufferHandle.Value());
+        deferred.Resolve(videoframe->GetProxyObject());
     }
 
     void OnError(Napi::Error const &error) {
@@ -60,21 +41,15 @@ class VideoFrameWorker : public Napi::AsyncWorker {
 
   protected:
     std::vector<napi_value> GetResult(Napi::Env env) {
-        return {
-            env.Null(),
-            Napi::Number::New(env, frameNumber),
-            bufferHandle.Value()
-        };
+        return { env.Null(), videoframe->GetProxyObject() };
     }
 
   private:
     VideoNode *vnode;
     const VSAPI *vsapi;
     int32_t frameNumber;
-    char *outBuffer;
-    bool ownBuffer;
+    VideoFrame *videoframe;
     Napi::Promise::Deferred deferred;
-    Napi::Reference<Napi::Buffer<char>> bufferHandle;
 };
 
 /**********************************************************************************************************************/
@@ -249,37 +224,32 @@ Napi::Value VideoNode::GetFps(const Napi::CallbackInfo &info) {
 Napi::Value VideoNode::GetFrame(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    bool ownBuffer{info.Length() > 1 && info[1].IsBuffer()};
-
     int32_t frameNumber = info[0].As<Napi::Number>().Int32Value();
 
-    Napi::Buffer<char> buffer = info.Length() > 1 ? info[1].As<Napi::Buffer<char>>() : Napi::Buffer<char>::New(env, getFrameSize());
+    char errMsg[1024];
 
-    Napi::Function callback = info[ownBuffer ? 2 : 1].As<Napi::Function>();
+    const VSFrame *vsframe = rawnode->core->vsapi->getFrame(frameNumber, rawnode->vsnode, errMsg, sizeof(errMsg));
 
-    VideoFrameWorker *worker = new VideoFrameWorker(this, frameNumber, buffer, ownBuffer, callback);
+    if (!vsframe) {
+        std::ostringstream ss;
+        ss << "Encountered error getting frame " << frameNumber << ": " << errMsg;
+        Napi::Error::New(Env(), ss.str()).ThrowAsJavaScriptException();
+        return env.Null();
+    }
 
-    worker->Queue();
-
-    return env.Null();
+    return VideoFrame::CreateInstance(rawnode->core, vsframe)->GetProxyObject();
 }
 
 Napi::Value VideoNode::GetFrameAsync(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    bool ownBuffer{info.Length() > 1 && info[1].IsBuffer()};
-
     int32_t frameNumber = info[0].As<Napi::Number>().Int32Value();
 
-    Napi::Buffer<char> buffer = info.Length() > 1 ? info[1].As<Napi::Buffer<char>>() : Napi::Buffer<char>::New(env, getFrameSize());
-
-    VideoFrameWorker *worker = new VideoFrameWorker(this, frameNumber, buffer, ownBuffer);
+    VideoFrameWorker *worker = new VideoFrameWorker(this, frameNumber);
 
     worker->Queue();
 
-    Napi::Promise promise = worker->GetPromise();
-
-    return promise;
+    return worker->GetPromise();
 }
 
 Napi::Value VideoNode::GetCore(const Napi::CallbackInfo &info) {
