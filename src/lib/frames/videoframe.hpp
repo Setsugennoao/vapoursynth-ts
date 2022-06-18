@@ -14,8 +14,8 @@ class VideoFrame : public Napi::ObjectWrap<VideoFrame> {
     ~VideoFrame();
 
     VideoFrame *SetInstance(Core *core, const VSFrame *constvsframe, VSFrame *vsframe);
-    static Napi::Object CreateInstance(Core *core, VSFrame *constvsframe);
-    static Napi::Object CreateInstance(Core *core, const VSFrame *constvsframe);
+    static VideoFrame* CreateInstance(Core *core, VSFrame *constvsframe);
+    static VideoFrame* CreateInstance(Core *core, const VSFrame *constvsframe);
     Napi::Object GetProxyObject();
 
     static Napi::FunctionReference *constructor;

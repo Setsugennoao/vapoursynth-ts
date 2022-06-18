@@ -39,12 +39,12 @@ VideoFrame *VideoFrame::SetInstance(Core *core, const VSFrame *constvsframe, VSF
     return this;
 }
 
-Napi::Object VideoFrame::CreateInstance(Core *core, const VSFrame *vsframe) {
-    return VideoFrame::Unwrap(constructor->New({}))->SetInstance(core, vsframe, nullptr)->GetProxyObject();
+VideoFrame* VideoFrame::CreateInstance(Core *core, const VSFrame *vsframe) {
+    return VideoFrame::Unwrap(constructor->New({}))->SetInstance(core, vsframe, nullptr);
 }
 
-Napi::Object VideoFrame::CreateInstance(Core *core, VSFrame *vsframe) {
-    return VideoFrame::Unwrap(constructor->New({}))->SetInstance(core, nullptr, vsframe)->GetProxyObject();
+VideoFrame* VideoFrame::CreateInstance(Core *core, VSFrame *vsframe) {
+    return VideoFrame::Unwrap(constructor->New({}))->SetInstance(core, nullptr, vsframe);
 }
 
 Napi::FunctionReference *VideoFrame::constructor;
