@@ -57,7 +57,7 @@
                 },
                 "msvs_settings": {
                     "VCCLCompilerTool": {
-                        'ExceptionHandling': 0,
+                        'ExceptionHandling': 2,
                         'MultiProcessorCompilation': 'true',
                         'StringPooling': 'true',
                         'RuntimeTypeInfo': 'false',
