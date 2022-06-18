@@ -89,7 +89,7 @@ Napi::Value Function::Call(const Napi::CallbackInfo &info) {
         if (error) {
             std::string errorString{error};
             core->vsapi->freeMap(outmap);
-            throw Napi::Error::New(Env(), errorString);
+            throw Napi::Error::New(env, errorString);
         }
 
         Napi::Value returnValue = core->VSMapToObject(outmap, true);

@@ -461,10 +461,10 @@ Napi::Value Core::VSMapToObject(VSMap *vsmap, bool shouldFlatten) {
                     // retObjValue = AudioNode::CreateInstance(this, vsapi->mapGetNode(vsmap, retKey, j, NULL));
                     break;
                 case ptVideoFrame:
-                    retObjValue = VideoFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL));
+                    retObjValue = VideoFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL))->GetProxyObject();
                     break;
                 case ptAudioFrame:
-                    // retObjValue = AudioFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL));
+                    // retObjValue = AudioFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL))->GetProxyObject();
                     break;
                 case ptFunction:
                     // retObjValue = JSFunction::CreateInstance(env, vsapi->mapGetFunction(vsmap, retKey, index, NULL))
