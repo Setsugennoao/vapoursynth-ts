@@ -132,14 +132,24 @@ const VideoNodeProxy = (node: VideoNodeIP) =>
     })
 
 const FunctionProxy = (func: FunctionIP) =>
-    createProxy((...args: any[]) => func.Call(...args), func, {
-        __PP: null,
-        __setPrintInstance: () =>
-            Object.assign(
-                new Function(`return function ${func.name}() {}`)(),
-                getAttributes(func, ['signature', 'returnType'])
-            ),
-    })
+    createProxy(
+        function (...args: any[]) {
+            try {
+                func.Call(...args)
+            } catch (e: any) {
+                throw e
+            }
+        },
+        func,
+        {
+            __PP: null,
+            __setPrintInstance: () =>
+                Object.assign(
+                    new Function(`return function ${func.name}() {}`)(),
+                    getAttributes(func, ['signature', 'returnType'])
+                ),
+        }
+    )
 
 const PluginProxy = (plugin: PluginIP, injected_arg: null | VideoNodeIP | AudioNodeIP = null) =>
     createProxy(plugin, plugin, {
