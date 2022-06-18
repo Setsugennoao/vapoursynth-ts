@@ -90,7 +90,7 @@ Napi::Object VideoNode::Init(Napi::Env env, Napi::Object exports) {
         InstanceAccessor<&VideoNode::GetFrameSize>("frameSize"),
         InstanceMethod<&VideoNode::SetOutput>("setOutput"),
         InstanceMethod<&VideoNode::GetFrame>("getFrame"),
-        InstanceMethod<&VideoNode::GetFrames>("frames"),
+        InstanceMethod<&VideoNode::GetFrameAsync>("getFrameAsync")
     });
 
     constructor = new Napi::FunctionReference();
@@ -250,33 +250,36 @@ Napi::Value VideoNode::GetFrame(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
     bool ownBuffer{info.Length() > 1 && info[1].IsBuffer()};
-    bool isAsync{!info[info.Length() - 1].IsFunction()};
 
     int32_t frameNumber = info[0].As<Napi::Number>().Int32Value();
 
     Napi::Buffer<char> buffer = info.Length() > 1 ? info[1].As<Napi::Buffer<char>>() : Napi::Buffer<char>::New(env, getFrameSize());
 
-    if (isAsync) {
-        VideoFrameWorker *worker = new VideoFrameWorker(this, frameNumber, buffer, ownBuffer);
+    Napi::Function callback = info[ownBuffer ? 2 : 1].As<Napi::Function>();
 
-        worker->Queue();
+    VideoFrameWorker *worker = new VideoFrameWorker(this, frameNumber, buffer, ownBuffer, callback);
 
-        Napi::Promise promise = worker->GetPromise();
+    worker->Queue();
 
-        return promise;
-    } else {
-        Napi::Function callback = info[ownBuffer ? 2 : 1].As<Napi::Function>();
-
-        VideoFrameWorker *worker = new VideoFrameWorker(this, frameNumber, buffer, ownBuffer, callback);
-
-        worker->Queue();
-
-        return env.Null();
-    }
+    return env.Null();
 }
 
-Napi::Value VideoNode::GetFrames(const Napi::CallbackInfo &info) {
-    return rawnode->GetFrames(info);
+Napi::Value VideoNode::GetFrameAsync(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+
+    bool ownBuffer{info.Length() > 1 && info[1].IsBuffer()};
+
+    int32_t frameNumber = info[0].As<Napi::Number>().Int32Value();
+
+    Napi::Buffer<char> buffer = info.Length() > 1 ? info[1].As<Napi::Buffer<char>>() : Napi::Buffer<char>::New(env, getFrameSize());
+
+    VideoFrameWorker *worker = new VideoFrameWorker(this, frameNumber, buffer, ownBuffer);
+
+    worker->Queue();
+
+    Napi::Promise promise = worker->GetPromise();
+
+    return promise;
 }
 
 Napi::Value VideoNode::GetCore(const Napi::CallbackInfo &info) {
