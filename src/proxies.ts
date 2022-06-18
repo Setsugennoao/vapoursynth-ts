@@ -5,6 +5,7 @@ import { Fraction } from './fractions'
 import {
     AudioNodeIP, Core, CoreIP, FunctionIP, Int, PluginIP, PyScript, stubs, VideoNode, VideoNodeIP
 } from './types/core'
+import { VideoFrame } from './types/core.d'
 import { getAttributes, parseSliceString } from './utils'
 
 export const { Core: CoreBinding, PyScript: PyScriptBinding } = require('bindings')('vapoursynthts.node') as {
@@ -128,6 +129,18 @@ const VideoNodeProxy = (node: VideoNodeIP) =>
         },
         get fps() {
             return new Fraction(node.fps.numerator, node.fps.denominator)
+        },
+        *frames() {
+            let i = 0
+            const l = node.numFrames
+            let frame = { close: () => void 0 } as VideoFrame
+
+            while (i < l) {
+                frame.close()
+                yield [++i, (frame = node.getFrame(i))]
+            }
+
+            return null
         },
     })
 

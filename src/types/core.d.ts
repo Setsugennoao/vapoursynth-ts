@@ -314,6 +314,7 @@ export class VideoNodeStaticAttributes {
      * Special flags set for this clip. This attribute should normally be ignored.
      */
     readonly flags: Int
+    frames(): Generator<[number, VideoFrame], void, undefined>
 }
 
 export class VideoFrameStaticAttributes {}
