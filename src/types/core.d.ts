@@ -228,19 +228,17 @@ export class VideoNodeCppAttributes {
 
      * The altOutput argument is for optional alternate output modes. Currently it controls the FOURCCs used for VFW-style output with certain formats.
      */
-    setOutput(index: Int, alpha?: VideoNode, altOutput?: Int): Promise<Buffer>
-    /**
-     * Returns a promise of which the result will be a VideoFrame.
-     * @throws {@link Error | Error} if there is an error during the frame request.
-     */
-    getFrame(frame: number): Promise<Buffer>
-    getFrame(frame: number, buffer: Buffer): Promise<Buffer>
+    setOutput(index: Int, alpha?: VideoNode, altOutput?: Int): void
     /**
      * Returns a VideoFrame from position n.
      * @throws {@link Error | Error} if there is an error during the frame request.
      */
-    // getFrame(frame: number, callback: (err: Error, frame: number, buffer: Buffer) => void): null
-    getFrame(frame: number, buffer: Buffer, callback: (err: Error, frame: number, buffer: Buffer) => void): null
+    getFrame(frameNumber: number): VideoFrame
+    /**
+     * Returns a promise of which the result will be a VideoFrame.
+     * @throws {@link Error | Error} if there is an error during the frame request.
+     */
+    getFrameAsync(frameNumber: number): Promise<VideoFrame>
     /**
      * Write the whole clip to the specified file handle. It is possible to pipe to stdout by specifying process.stdout as the file.
 
