@@ -3,61 +3,74 @@
 #include "../frames/videoframe.hpp"
 
 #include "videonode.hpp"
+
+#include <future>
 /**********************************************************************************************************************/
 
-class VideoFrameWorker : public Napi::AsyncWorker {
-  public:
-    VideoFrameWorker(VideoNode *vnode, int32_t frameNumber):
-        Napi::AsyncWorker(vnode->Env()), vnode(vnode), vsapi(vnode->rawnode->core->vsapi),
-        frameNumber(frameNumber), deferred(Napi::Promise::Deferred::New(vnode->Env())),
-        videoframe(VideoFrame::CreateInstance(vnode->rawnode->core, (VSFrame*)nullptr)) {}
-    ~VideoFrameWorker() {}
-
-    void Execute() {
-        char errMsg[1024];
-        const VSFrame *frame = vnode->rawnode->core->vsapi->getFrame(frameNumber, vnode->rawnode->vsnode, errMsg, sizeof(errMsg));
-
-        if (!frame) {
-            std::ostringstream ss;
-            ss << "Encountered error getting frame " << frameNumber << ": " << errMsg;
-            SetError(ss.str());
-            return;
+class VideoFrameWorker: public Napi::AsyncWorker {
+    public:
+        VideoFrameWorker(VideoNode *vnode, int32_t frameNumber) :
+            Napi::AsyncWorker(vnode->Env()), vnode(vnode), vsapi(vnode->rawnode->core->vsapi), frameNumber(frameNumber),
+            deferred(Napi::Promise::Deferred::New(vnode->Env())),
+            videoframe(VideoFrame::CreateInstance(vnode->rawnode->core, (VSFrame *) nullptr)) {
+        }
+        ~VideoFrameWorker() {
         }
 
+        void Execute() {
+            vnode->rawnode->core->vsapi->getFrameAsync(
+                frameNumber, vnode->rawnode->vsnode, VideoFrameWorkerCallback, (void *) this
+            );
+            this->future = promise.get_future();
+        }
 
-    }
+        void OnOK() {
+            deferred.Resolve(videoframe->SetInstance(videoframe->core, this->future.get())->GetProxyObject());
+        }
 
-    void OnOK() {
-        deferred.Resolve(videoframe->GetProxyObject());
-    }
+        void OnError(const Napi::Error &error) {
+            deferred.Reject(error.Value());
+        }
 
-    void OnError(Napi::Error const &error) {
-        deferred.Reject(error.Value());
-    }
+        Napi::Promise GetPromise() {
+            return deferred.Promise();
+        }
 
-    Napi::Promise GetPromise() {
-        return deferred.Promise();
-    }
+        void SetVSError(const std::string &error) {
+            this->SetError(error);
+        }
 
-  protected:
-    std::vector<napi_value> GetResult(Napi::Env env) {
-        return { env.Null(), videoframe->GetProxyObject() };
-    }
+    protected:
+        std::vector<napi_value> GetResult(Napi::Env env) {
+            return { env.Null(), videoframe->GetProxyObject() };
+        }
 
-  private:
-    VideoNode *vnode;
-    const VSAPI *vsapi;
-    int32_t frameNumber;
-    VideoFrame *videoframe;
-    Napi::Promise::Deferred deferred;
+    public:
+        std::promise<const VSFrame *> promise;
+        std::future<const VSFrame *> future;
+
+        VideoNode *vnode;
+        const VSAPI *vsapi;
+        int32_t frameNumber;
+        VideoFrame *videoframe;
+        Napi::Promise::Deferred deferred;
 };
+
+void VideoFrameWorkerCallback(void *userData, const VSFrame *f, int n, VSNode *node, const char *errorMsg) {
+    auto worker { static_cast<VideoFrameWorker *>(userData) };
+
+    worker->promise.set_value(f);
+
+    if (!f) {
+        std::ostringstream ss;
+        ss << "Encountered error getting frame " << worker->frameNumber << ": " << errorMsg;
+        return worker->SetVSError(ss.str());
+    }
+}
 
 /**********************************************************************************************************************/
 
 Napi::Object VideoNode::Init(Napi::Env env, Napi::Object exports) {
-    Napi::Function func = DefineClass(env, "VideoNode", {
-        InstanceAccessor<&VideoNode::GetCore>("core"),
-        InstanceAccessor<&VideoNode::GetFps>("fps"),
     Napi::Function func = DefineClass(
         env, "VideoNode",
         { InstanceAccessor<&VideoNode::GetCore>("core"), InstanceAccessor<&VideoNode::GetFps>("fps"),
@@ -75,10 +88,12 @@ Napi::Object VideoNode::Init(Napi::Env env, Napi::Object exports) {
     return exports;
 }
 
-VideoNode::VideoNode(const Napi::CallbackInfo &info) : Napi::ObjectWrap<VideoNode>(info) {}
+VideoNode::VideoNode(const Napi::CallbackInfo &info) : Napi::ObjectWrap<VideoNode>(info) {
+}
 
 Napi::Object VideoNode::GetProxyObject() {
-    return rawnode->core->proxyFunctions->Get("VideoNode").As<Napi::Function>().Call({this->Value()}).As<Napi::Object>();
+    return rawnode->core->proxyFunctions->Get("VideoNode")
+        .As<Napi::Function>()
         .Call({ this->Value() })
         .As<Napi::Object>();
 }
@@ -155,19 +170,17 @@ void VideoNode::SetOutput(const Napi::CallbackInfo &info) {
             return;
         }
 
-        if ((vsvideoinfo->format.colorFamily != cfUndefined) && (alpha->vsvideoinfo->format.colorFamily != cfUndefined)) {
-            if (
-                (alpha->vsvideoinfo->format.colorFamily != cfGray) ||
         if ((vsvideoinfo->format.colorFamily != cfUndefined) &&
             (alpha->vsvideoinfo->format.colorFamily != cfUndefined)) {
             if ((alpha->vsvideoinfo->format.colorFamily != cfGray) ||
                 (alpha->vsvideoinfo->format.sampleType != vsvideoinfo->format.sampleType) ||
-            ) {
+                (alpha->vsvideoinfo->format.bitsPerSample != vsvideoinfo->format.bitsPerSample)) {
                 Napi::Error::New(Env(), "Alpha clip format must match the main video!").ThrowAsJavaScriptException();
                 return;
             }
         } else if ((vsvideoinfo->format.colorFamily != cfUndefined) || (alpha->vsvideoinfo->format.colorFamily != cfUndefined)) {
-            Napi::Error::New(Env(), "Format must be either known or unknown for both alpha and main clip!").ThrowAsJavaScriptException();
+            Napi::Error::New(Env(), "Format must be either known or unknown for both alpha and main clip!")
+                .ThrowAsJavaScriptException();
             return;
         }
 
