@@ -22,7 +22,9 @@ Plugin::Plugin(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Plugin>(info) 
 }
 
 Napi::Object Plugin::GetProxyObject() {
-    return core->proxyFunctions->Get("Plugin").As<Napi::Function>().Call({ this->Value() }).As<Napi::Object>();
+    return core->proxyFunctions->Get("Plugin").As<Napi::Function>().Call({
+        this->Value(), this->injectedNode ? this->injectedNode->Value() : Env().Null()
+    }).As<Napi::Object>();
 }
 
 Plugin *Plugin::SetInstance(Core *core, VSPlugin *vsplugin, RawNode *injectedNode) {
