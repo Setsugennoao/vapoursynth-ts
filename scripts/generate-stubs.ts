@@ -102,6 +102,10 @@ function _construct_type(pluginName: string, signature: string, positional: bool
         typeT = dom.create.array(typeT)
     }
 
+    if (!!opt) {
+        typeT = dom.create.union([typeT, dom.type.null])
+    }
+
     return [name, typeT, !!opt] as [string, dom.Type, boolean]
 }
 
