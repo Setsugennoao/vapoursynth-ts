@@ -6,7 +6,7 @@ import {
     AudioNodeIP, Core, CoreIP, FunctionIP, Int, PluginIP, PyScript, stubs, VideoNode, VideoNodeIP
 } from './types/core'
 import { VideoFrame } from './types/core.d'
-import { getAttributes, parseSliceString } from './utils'
+import { getAttributes, parseSliceString, range } from './utils'
 
 export const { Core: CoreBinding, PyScript: PyScriptBinding } = require('bindings')('vapoursynthts.node') as {
     Core: CoreIP
@@ -130,17 +130,107 @@ const VideoNodeProxy = (node: VideoNodeIP) =>
         get fps() {
             return new Fraction(node.fps.numerator, node.fps.denominator)
         },
-        *frames() {
-            let i = 0
-            const l = node.numFrames
-            let frame = { close: () => void 0 } as VideoFrame
 
-            while (i < l) {
-                frame.close()
-                yield [++i, (frame = node.getFrame(i))]
+        async *frames(_prefetch?: Int, _backlog?: Int, close: boolean = true) {
+            const prefetch = _prefetch ?? node.core.numThreads
+            const backlog = Math.max(_backlog ?? prefetch * 3, prefetch)
+
+            function* _enumPromises(): Generator<[Int, Promise<VideoFrame>], null, any> {
+                for (const i of range(node.numFrames)) {
+                    yield [i, node.getFrameAsync(i)]
+                }
+
+                return null
             }
 
-            return null
+            const enumPromise = _enumPromises()
+
+            let finished = false
+            let running = 0
+
+            const reorder: Record<Int, Promise<VideoFrame | Error>> = {}
+
+            function _refill() {
+                if (finished) return
+
+                while (running < prefetch && Object.keys(reorder).length < backlog) {
+                    _request_next()
+                }
+            }
+
+            function _request_next() {
+                if (finished) return
+
+                const ni = enumPromise.next()
+
+                if (ni.done) {
+                    return (finished = true)
+                }
+
+                running++
+
+                const [idx, fut] = ni.value
+
+                reorder[idx] = fut.then(_finished).catch(_finishedExc)
+            }
+
+            function _finished(f: VideoFrame) {
+                setImmediate(() => {
+                    if (!finished) _refill()
+                })
+                return f
+            }
+
+            function _finishedExc(err: Error) {
+                finished = true
+
+                return err
+            }
+
+            _refill()
+
+            const curr = {} as { result?: VideoFrame | Error }
+
+            let sidx = 0
+            try {
+                while (!finished || Object.keys(reorder).length > 0 || running > 0) {
+                    if (reorder[sidx] == null) {
+                        continue
+                    }
+
+                    curr.result = await reorder[sidx]
+
+                    delete reorder[sidx]
+
+                    _refill()
+
+                    sidx++
+                    running--
+
+                    const isError = curr.result instanceof Error
+
+                    try {
+                        if (isError) {
+                            throw curr.result
+                        }
+
+                        // prettier-ignore
+                        yield [sidx, curr.result]
+                    } finally {
+                        if (close && !isError) {
+                            // @ts-ignore
+                            curr.result.close()
+                            delete curr.result
+                        }
+                    }
+                }
+            } finally {
+                finished = true
+                for await (const fut of Object.values(reorder)) {
+                    if (fut instanceof Error) continue
+                    fut.close()
+                }
+            }
         },
     })
 
