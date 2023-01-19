@@ -408,9 +408,9 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
 
                 error = vsapi->mapSetFrame(inmap, key.c_str(), rawframe->vsframe, 1);
                 // } else if (Function::IsParentOf(value)) {
-                //             // Function *func = Function::Unwrap(value.As<Napi::Object>());
-                //             // vsapi->mapSetFunction(inmap, key.c_str(), func->vsfunction, 1);
-            } else {
+                //      Function *func = Function::Unwrap(value.As<Napi::Object>());
+                //      vsapi->mapSetFunction(inmap, key.c_str(), func->vsfunction, 1);
+            } else if (!value.IsNull() && !value.IsUndefined()) {
                 std::ostringstream ss;
                 ss << "Argument " << key << " was passed an unsupported type";
 
