@@ -4,7 +4,8 @@
             "name": "Win32",
             "includePath": [
                 "D:/CPPLibs/**",
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "C:/Users/Matteo/AppData/Local/Programs/VapourSynth/sdk/include"
             ],
             "defines": [
                 "_DEBUG",
