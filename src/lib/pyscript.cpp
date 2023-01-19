@@ -1,9 +1,7 @@
 #include "core.hpp"
 
 Napi::Object PyScript::Init(Napi::Env env, Napi::Object exports) {
-    Napi::Function func = DefineClass(env, "PyScript", {
-        InstanceAccessor<&PyScript::GetCore>("core")
-    });
+    Napi::Function func = DefineClass(env, "PyScript", { InstanceAccessor<&PyScript::GetCore>("core") });
 
     coreObject = new Napi::ObjectReference();
     constructor = new Napi::FunctionReference();
@@ -17,7 +15,7 @@ Napi::Object PyScript::Init(Napi::Env env, Napi::Object exports) {
 PyScript::PyScript(const Napi::CallbackInfo &info) : Napi::ObjectWrap<PyScript>(info) {
     Napi::Env env = info.Env();
     int argLength = info.Length();
-    std::string path{""};
+    std::string path { "" };
 
     if (argLength < 1 || argLength > 3) {
         Napi::TypeError::New(env, "Wrong number of arguments!").ThrowAsJavaScriptException();
@@ -33,7 +31,8 @@ PyScript::PyScript(const Napi::CallbackInfo &info) : Napi::ObjectWrap<PyScript>(
             }
         }
     } else {
-        Napi::TypeError::New(env, "The first argument has to be either a buffer or string path of the script!").ThrowAsJavaScriptException();
+        Napi::TypeError::New(env, "The first argument has to be either a buffer or string path of the script!")
+            .ThrowAsJavaScriptException();
         return;
     }
 
@@ -70,7 +69,8 @@ PyScript::PyScript(const Napi::CallbackInfo &info) : Napi::ObjectWrap<PyScript>(
         vssapi->freeScript(vsscript);
         vsscript = nullptr;
 
-        if (errorMsg) ss << "\n\tError: " << errorMsg;
+        if (errorMsg)
+            ss << "\n\tError: " << errorMsg;
 
         Napi::Error::New(env, ss.str()).ThrowAsJavaScriptException();
 

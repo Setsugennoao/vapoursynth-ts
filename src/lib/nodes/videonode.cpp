@@ -58,15 +58,14 @@ Napi::Object VideoNode::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "VideoNode", {
         InstanceAccessor<&VideoNode::GetCore>("core"),
         InstanceAccessor<&VideoNode::GetFps>("fps"),
-        InstanceAccessor<&VideoNode::GetWidth>("width"),
-        InstanceAccessor<&VideoNode::GetHeight>("height"),
-        InstanceAccessor<&VideoNode::GetFormat>("format"),
-        InstanceAccessor<&VideoNode::GetNumFrames>("numFrames"),
-        InstanceAccessor<&VideoNode::GetFrameSize>("frameSize"),
-        InstanceMethod<&VideoNode::SetOutput>("setOutput"),
-        InstanceMethod<&VideoNode::GetFrame>("getFrame"),
-        InstanceMethod<&VideoNode::GetFrameAsync>("getFrameAsync")
-    });
+    Napi::Function func = DefineClass(
+        env, "VideoNode",
+        { InstanceAccessor<&VideoNode::GetCore>("core"), InstanceAccessor<&VideoNode::GetFps>("fps"),
+          InstanceAccessor<&VideoNode::GetWidth>("width"), InstanceAccessor<&VideoNode::GetHeight>("height"),
+          InstanceAccessor<&VideoNode::GetFormat>("format"), InstanceAccessor<&VideoNode::GetNumFrames>("numFrames"),
+          InstanceAccessor<&VideoNode::GetFrameSize>("frameSize"), InstanceMethod<&VideoNode::SetOutput>("setOutput"),
+          InstanceMethod<&VideoNode::GetFrame>("getFrame"), InstanceMethod<&VideoNode::GetFrameAsync>("getFrameAsync") }
+    );
 
     constructor = new Napi::FunctionReference();
     *constructor = Napi::Persistent(func);
@@ -80,6 +79,8 @@ VideoNode::VideoNode(const Napi::CallbackInfo &info) : Napi::ObjectWrap<VideoNod
 
 Napi::Object VideoNode::GetProxyObject() {
     return rawnode->core->proxyFunctions->Get("VideoNode").As<Napi::Function>().Call({this->Value()}).As<Napi::Object>();
+        .Call({ this->Value() })
+        .As<Napi::Object>();
 }
 
 VideoNode *VideoNode::SetInstance(Core *core, VSNode *vsnode) {
@@ -157,8 +158,10 @@ void VideoNode::SetOutput(const Napi::CallbackInfo &info) {
         if ((vsvideoinfo->format.colorFamily != cfUndefined) && (alpha->vsvideoinfo->format.colorFamily != cfUndefined)) {
             if (
                 (alpha->vsvideoinfo->format.colorFamily != cfGray) ||
+        if ((vsvideoinfo->format.colorFamily != cfUndefined) &&
+            (alpha->vsvideoinfo->format.colorFamily != cfUndefined)) {
+            if ((alpha->vsvideoinfo->format.colorFamily != cfGray) ||
                 (alpha->vsvideoinfo->format.sampleType != vsvideoinfo->format.sampleType) ||
-                (alpha->vsvideoinfo->format.bitsPerSample != vsvideoinfo->format.bitsPerSample)
             ) {
                 Napi::Error::New(Env(), "Alpha clip format must match the main video!").ThrowAsJavaScriptException();
                 return;

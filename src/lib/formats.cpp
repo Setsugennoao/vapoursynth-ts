@@ -1,10 +1,10 @@
 #include "formats.hpp"
 
 Napi::Object VideoFormat::Init(Napi::Env env, Napi::Object exports) {
-    Napi::Function func = DefineClass(env, "VideoFormat", {
-        InstanceMethod("toObject", &VideoFormat::ToObject),
-        InstanceMethod("replace", &VideoFormat::Replace)
-    });
+    Napi::Function func = DefineClass(
+        env, "VideoFormat",
+        { InstanceMethod("toObject", &VideoFormat::ToObject), InstanceMethod("replace", &VideoFormat::Replace) }
+    );
 
     constructor = new Napi::FunctionReference();
     *constructor = Napi::Persistent(func);
@@ -14,10 +14,11 @@ Napi::Object VideoFormat::Init(Napi::Env env, Napi::Object exports) {
     return exports;
 }
 
-VideoFormat::VideoFormat(const Napi::CallbackInfo &info) : Napi::ObjectWrap<VideoFormat>(info) {}
+VideoFormat::VideoFormat(const Napi::CallbackInfo &info) : Napi::ObjectWrap<VideoFormat>(info) {
+}
 
 Napi::Object VideoFormat::GetProxyObject() {
-    return core->proxyFunctions->Get("VideoFormat").As<Napi::Function>().Call({this->Value()}).As<Napi::Object>();
+    return core->proxyFunctions->Get("VideoFormat").As<Napi::Function>().Call({ this->Value() }).As<Napi::Object>();
 }
 
 VideoFormat *VideoFormat::SetInstance(Core *core, const VSVideoFormat *vsvformat) {
@@ -33,7 +34,8 @@ Napi::Object VideoFormat::CreateInstance(Core *core, const VSVideoFormat *vsvfor
 
 Napi::FunctionReference *VideoFormat::constructor;
 
-VideoFormat::~VideoFormat() {}
+VideoFormat::~VideoFormat() {
+}
 
 Napi::Value VideoFormat::ToObject(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
@@ -46,11 +48,13 @@ Napi::Value VideoFormat::ToObject(const Napi::CallbackInfo &info) {
 
     const VSVideoFormat f = *vsvformat;
 
-    videoFormatObj.Set("id", Napi::Value::From(
-        env, core->vsapi->queryVideoFormatID(
-            f.colorFamily, f.sampleType, f.bitsPerSample, f.subSamplingW, f.subSamplingH, core->vscore
-        )
-    ));
+    videoFormatObj.Set(
+        "id", Napi::Value::From(
+                  env, core->vsapi->queryVideoFormatID(
+                           f.colorFamily, f.sampleType, f.bitsPerSample, f.subSamplingW, f.subSamplingH, core->vscore
+                       )
+              )
+    );
     videoFormatObj.Set("name", Napi::String::From(env, nameBuffer));
     videoFormatObj.Set("colorFamily", Napi::Number::From(env, f.colorFamily));
     videoFormatObj.Set("sampleType", Napi::Number::From(env, f.sampleType));

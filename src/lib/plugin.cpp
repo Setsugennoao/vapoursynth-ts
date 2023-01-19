@@ -3,13 +3,12 @@
 #include "function.hpp"
 
 Napi::Object Plugin::Init(Napi::Env env, Napi::Object exports) {
-    Napi::Function func = DefineClass(env, "Plugin", {
-        InstanceAccessor<&Plugin::GetCore>("core"),
-        InstanceMethod<&Plugin::GetFunction>("getFunction"),
-        InstanceAccessor<&Plugin::GetNamespace>("namespace"),
-        InstanceAccessor<&Plugin::GetAllFunctions>("functions"),
-        InstanceAccessor<&Plugin::GetDescription>("description")
-    });
+    Napi::Function func = DefineClass(
+        env, "Plugin",
+        { InstanceAccessor<&Plugin::GetCore>("core"), InstanceMethod<&Plugin::GetFunction>("getFunction"),
+          InstanceAccessor<&Plugin::GetNamespace>("namespace"), InstanceAccessor<&Plugin::GetAllFunctions>("functions"),
+          InstanceAccessor<&Plugin::GetDescription>("description") }
+    );
 
     constructor = new Napi::FunctionReference();
     *constructor = Napi::Persistent(func);
@@ -19,10 +18,11 @@ Napi::Object Plugin::Init(Napi::Env env, Napi::Object exports) {
     return exports;
 }
 
-Plugin::Plugin(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Plugin>(info) {}
+Plugin::Plugin(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Plugin>(info) {
+}
 
 Napi::Object Plugin::GetProxyObject() {
-    return core->proxyFunctions->Get("Plugin").As<Napi::Function>().Call({this->Value()}).As<Napi::Object>();
+    return core->proxyFunctions->Get("Plugin").As<Napi::Function>().Call({ this->Value() }).As<Napi::Object>();
 }
 
 Plugin *Plugin::SetInstance(Core *core, VSPlugin *vsplugin, RawNode *injectedNode) {
@@ -39,7 +39,8 @@ Napi::Object Plugin::CreateInstance(Core *core, VSPlugin *vsplugin, RawNode *inj
 
 Napi::FunctionReference *Plugin::constructor;
 
-Plugin::~Plugin() {}
+Plugin::~Plugin() {
+}
 
 Napi::Value Plugin::GetNamespace(const Napi::CallbackInfo &info) {
     return Napi::String::New(info.Env(), core->vsapi->getPluginNamespace(vsplugin));
@@ -69,7 +70,8 @@ Napi::Value Plugin::GetAllFunctions(const Napi::CallbackInfo &info) {
     while (true) {
         function = core->vsapi->getNextPluginFunction(function, vsplugin);
 
-        if (!function) break;
+        if (!function)
+            break;
 
         functions.Set(functions.Length(), core->vsapi->getPluginFunctionName(function));
     }

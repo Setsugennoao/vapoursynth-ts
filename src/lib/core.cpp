@@ -16,22 +16,19 @@
 #include "./utils/sharenodes.cpp"
 
 Napi::Object Core::Init(Napi::Env env, Napi::Object exports) {
-    Napi::Function func = DefineClass(env, "Core", {
-        InstanceMethod<&Core::Destroy>("destroy"),
-        InstanceMethod<&Core::GetPlugin>("getPlugin"),
-        InstanceMethod<&Core::QueryVideoFormat>("queryVideoFormat"),
-        InstanceMethod<&Core::GetVideoFormat>("getVideoFormat"),
-        InstanceMethod<&Core::GetOutput>("getOutput"),
-        InstanceMethod<&Core::GetOutputs>("getOutputs"),
-        InstanceMethod<&Core::ClearOutput>("clearOutput"),
-        InstanceMethod<&Core::ClearOutputs>("clearOutputs"),
-        InstanceAccessor<&Core::GetAllPlugins>("plugins"),
-        InstanceAccessor<&Core::GetCoreCreationFlags>("flags"),
-        InstanceAccessor<&Core::GetCoreVersion>("versionString"),
-        InstanceAccessor<&Core::GetCoreVersionNumber>("versionNumber"),
-        InstanceAccessor<&Core::GetNumThreads, &Core::SetNumThreads>("numThreads"),
-        InstanceAccessor<&Core::GetMaxCacheSize, &Core::SetMaxCacheSize>("maxCacheSize")
-    });
+    Napi::Function func = DefineClass(
+        env, "Core",
+        { InstanceMethod<&Core::Destroy>("destroy"), InstanceMethod<&Core::GetPlugin>("getPlugin"),
+          InstanceMethod<&Core::QueryVideoFormat>("queryVideoFormat"),
+          InstanceMethod<&Core::GetVideoFormat>("getVideoFormat"), InstanceMethod<&Core::GetOutput>("getOutput"),
+          InstanceMethod<&Core::GetOutputs>("getOutputs"), InstanceMethod<&Core::ClearOutput>("clearOutput"),
+          InstanceMethod<&Core::ClearOutputs>("clearOutputs"), InstanceAccessor<&Core::GetAllPlugins>("plugins"),
+          InstanceAccessor<&Core::GetCoreCreationFlags>("flags"),
+          InstanceAccessor<&Core::GetCoreVersion>("versionString"),
+          InstanceAccessor<&Core::GetCoreVersionNumber>("versionNumber"),
+          InstanceAccessor<&Core::GetNumThreads, &Core::SetNumThreads>("numThreads"),
+          InstanceAccessor<&Core::GetMaxCacheSize, &Core::SetMaxCacheSize>("maxCacheSize") }
+    );
 
     constructor = new Napi::FunctionReference();
     *constructor = Napi::Persistent(func);
@@ -55,7 +52,8 @@ Core::Core(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Core>(info) {
     SetInstance(NULL, NULL, creationFlags, NULL);
 }
 
-Core::~Core() {}
+Core::~Core() {
+}
 
 Napi::Value Core::Destroy(const Napi::CallbackInfo &info) {
     if (vscore && vscore) {
@@ -106,7 +104,10 @@ VSCoreInfo Core::GetCoreInfo() {
 Napi::FunctionReference *Core::constructor;
 
 Napi::Object Core::GetProxyObject() {
-    return proxyFunctions->Get("Core").As<Napi::Function>().Call({ this->Env().Null(), this->Value() }).As<Napi::Object>();
+    return proxyFunctions->Get("Core")
+        .As<Napi::Function>()
+        .Call({ this->Env().Null(), this->Value() })
+        .As<Napi::Object>();
 }
 
 Napi::Value Core::GetPlugin(const Napi::CallbackInfo &info) {
@@ -114,10 +115,10 @@ Napi::Value Core::GetPlugin(const Napi::CallbackInfo &info) {
 
     std::string name = info[0].As<Napi::String>().Utf8Value();
 
-    RawNode *injectedArg{nullptr};
+    RawNode *injectedArg { nullptr };
     if (info.Length() > 1 && info[0].IsObject()) {
         Napi::Object injectedNodeObj = info[0].As<Napi::Object>();
-        if (VideoNode::IsParentOf(injectedNodeObj)) { //|| AudioNode::IsParentOf(injectedNodeObj)) {
+        if (VideoNode::IsParentOf(injectedNodeObj)) {  //|| AudioNode::IsParentOf(injectedNodeObj)) {
             if (VideoNode::IsParentOf(injectedNodeObj)) {
                 injectedArg = VideoNode::Unwrap(injectedNodeObj)->rawnode;
             }
@@ -142,7 +143,8 @@ Napi::Value Core::GetAllPlugins(const Napi::CallbackInfo &info) {
     while (true) {
         plugin = vsapi->getNextPlugin(plugin, vscore);
 
-        if (!plugin) break;
+        if (!plugin)
+            break;
 
         plugins.Set(plugins.Length(), vsapi->getPluginNamespace(plugin));
     }
@@ -185,7 +187,8 @@ void Core::SetNumThreads(const Napi::CallbackInfo &info, const Napi::Value &valu
     int newvalue = value.As<Napi::Number>().Int32Value();
 
     if (newvalue <= 0) {
-        Napi::Error::New(env, "Core number of threads has to be a positive number bigger than 0!").ThrowAsJavaScriptException();
+        Napi::Error::New(env, "Core number of threads has to be a positive number bigger than 0!")
+            .ThrowAsJavaScriptException();
         return;
     }
 
@@ -211,17 +214,22 @@ void Core::SetMaxCacheSize(const Napi::CallbackInfo &info, const Napi::Value &va
     int newvalue = value.As<Napi::Number>().Int32Value();
 
     if (newvalue <= 0) {
-        Napi::Error::New(env, "Core max cache size has to be a positive number bigger than 0!").ThrowAsJavaScriptException();
+        Napi::Error::New(env, "Core max cache size has to be a positive number bigger than 0!")
+            .ThrowAsJavaScriptException();
         return;
     }
 
     vsapi->setMaxCacheSize(newvalue * 1024 * 1024, vscore);
 }
 
-Napi::Object Core::queryVideoFormat(VSColorFamily colorFamily, VSSampleType sampleType, int bitsPerSample, int subsamplingW, int subsamplingH) {
-    VSVideoFormat *vsformat{nullptr};
+Napi::Object Core::queryVideoFormat(
+    VSColorFamily colorFamily, VSSampleType sampleType, int bitsPerSample, int subsamplingW, int subsamplingH
+) {
+    VSVideoFormat *vsformat { nullptr };
 
-    if (!vsapi->queryVideoFormat(vsformat, colorFamily, sampleType, bitsPerSample, subsamplingW, subsamplingH, vscore)) {
+    if (!vsapi->queryVideoFormat(
+            vsformat, colorFamily, sampleType, bitsPerSample, subsamplingW, subsamplingH, vscore
+        )) {
         Napi::Error::New(Env(), "Invalid format properties specified!").ThrowAsJavaScriptException();
         return Env().Null().As<Napi::Object>();
     }
@@ -230,7 +238,7 @@ Napi::Object Core::queryVideoFormat(VSColorFamily colorFamily, VSSampleType samp
 }
 
 Napi::Object Core::getVideoFormat(uint32_t id) {
-    VSVideoFormat *vsformat{nullptr};
+    VSVideoFormat *vsformat { nullptr };
     if (!vsapi->getVideoFormatByID(vsformat, id, vscore)) {
         Napi::Error::New(Env(), "Invalid format id specified!").ThrowAsJavaScriptException();
         return Env().Null().As<Napi::Object>();
@@ -258,11 +266,12 @@ Napi::Value Core::QueryVideoFormat(const Napi::CallbackInfo &info) {
         return env.Null();
     }
 
-    int args[5]{};
+    int args[5] {};
 
     for (int i = 0; i < 5; i++) {
         if (!info[i].IsNumber()) {
-            Napi::Error::New(env, "ColorFamily, sampleType and bitsPerSample have to be numbers!").ThrowAsJavaScriptException();
+            Napi::Error::New(env, "ColorFamily, sampleType and bitsPerSample have to be numbers!")
+                .ThrowAsJavaScriptException();
             return env.Null();
         } else if (i == 3 || i == 4) {
             args[i] = 0;
@@ -271,7 +280,7 @@ Napi::Value Core::QueryVideoFormat(const Napi::CallbackInfo &info) {
         }
     }
 
-    return queryVideoFormat((VSColorFamily)args[0], (VSSampleType)args[1], args[2], args[3], args[4]);
+    return queryVideoFormat((VSColorFamily) args[0], (VSSampleType) args[1], args[2], args[3], args[4]);
 }
 
 void Core::setOutput(int index, Napi::Object value) {
@@ -332,7 +341,7 @@ void Core::ClearOutput(const Napi::CallbackInfo &info) {
 void Core::ClearOutputs(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
-    for(int i = 0, l = outputs->Value().Length(); i < l; i++) {
+    for (int i = 0, l = outputs->Value().Length(); i < l; i++) {
         outputs->Value().Delete(i);
     }
 }
@@ -341,22 +350,23 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
     Napi::Env env = object->Env();
     Napi::Array keys = object->GetPropertyNames();
 
-    for(uint32_t i = 0u, j = keys.Length(); i < j; i++) {
+    for (uint32_t i = 0u, j = keys.Length(); i < j; i++) {
         std::string key = keys.Get(i).As<Napi::String>().Utf8Value();
 
         Napi::Value objValue = object->Get(key);
 
         Napi::Array values = objValue.IsArray() ? objValue.As<Napi::Array>() : Napi::Array::New(env);
 
-        if (!objValue.IsArray()) values.Set(0u, objValue);
+        if (!objValue.IsArray())
+            values.Set(0u, objValue);
 
-        int error{0};
+        int error { 0 };
 
-        for(uint32_t k = 0u, l = values.Length(); k < l; k++) {
+        for (uint32_t k = 0u, l = values.Length(); k < l; k++) {
             Napi::Value kObj = values.Get(k);
-            Napi::Value value = (
-                kObj.IsObject() && !kObj.As<Napi::Object>().Get("__self").IsUndefined()
-            ) ? kObj.As<Napi::Object>().Get("__self") : kObj;
+            Napi::Value value = (kObj.IsObject() && !kObj.As<Napi::Object>().Get("__self").IsUndefined())
+                                  ? kObj.As<Napi::Object>().Get("__self")
+                                  : kObj;
 
             bool isString = value.IsString();
             bool isRawData = value.IsBuffer() || value.IsDataView() || value.IsArrayBuffer();
@@ -373,8 +383,8 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
                 const char *data = value.As<Napi::String>().Utf8Value().c_str();
 
                 error = vsapi->mapSetData(inmap, key.c_str(), data, strlen(data), isString ? dtUtf8 : dtBinary, 1);
-            } else if (VideoNode::IsParentOf(value)) { //|| AudioNode::IsParentOf(value)) {
-                VSNode *outnode{nullptr};
+            } else if (VideoNode::IsParentOf(value)) {  //|| AudioNode::IsParentOf(value)) {
+                VSNode *outnode { nullptr };
 
                 if (VideoNode::IsParentOf(value)) {
                     outnode = ShareVideoNode(this, VideoNode::Unwrap(value.As<Napi::Object>()));
@@ -384,10 +394,10 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
                 // }
 
                 error = vsapi->mapSetNode(inmap, key.c_str(), outnode, 1);
-            } else if (VideoFrame::IsParentOf(value)) { //|| AudioFrame::IsParentOf(value)) {
+            } else if (VideoFrame::IsParentOf(value)) {  //|| AudioFrame::IsParentOf(value)) {
                 Napi::Object frameObject = value.As<Napi::Object>();
 
-                RawFrame *rawframe{nullptr};
+                RawFrame *rawframe { nullptr };
 
                 if (VideoFrame::IsParentOf(value)) {
                     rawframe = VideoFrame::Unwrap(frameObject)->rawframe;
@@ -397,9 +407,9 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
                 // }
 
                 error = vsapi->mapSetFrame(inmap, key.c_str(), rawframe->vsframe, 1);
-            // } else if (Function::IsParentOf(value)) {
-    //             // Function *func = Function::Unwrap(value.As<Napi::Object>());
-    //             // vsapi->mapSetFunction(inmap, key.c_str(), func->vsfunction, 1);
+                // } else if (Function::IsParentOf(value)) {
+                //             // Function *func = Function::Unwrap(value.As<Napi::Object>());
+                //             // vsapi->mapSetFunction(inmap, key.c_str(), func->vsfunction, 1);
             } else {
                 std::ostringstream ss;
                 ss << "Argument " << key << " was passed an unsupported type";
@@ -407,7 +417,8 @@ void Core::AnyObjectToVSMap(Napi::Object *object, VSMap *inmap) {
                 throw Napi::Error::New(env, ss.str());
             }
 
-            if (error) break;
+            if (error)
+                break;
         }
 
         if (error) {
@@ -433,7 +444,6 @@ Napi::Value Core::VSMapToObject(VSMap *vsmap, bool shouldFlatten) {
     if (numKeys == 0) {
         return shouldFlatten ? env.Null() : returnObject;
     }
-
 
     for (int i = 0; i < numKeys; i++) {
         const char *retKey = vsapi->mapGetKey(vsmap, i);
@@ -461,15 +471,16 @@ Napi::Value Core::VSMapToObject(VSMap *vsmap, bool shouldFlatten) {
                     // retObjValue = AudioNode::CreateInstance(this, vsapi->mapGetNode(vsmap, retKey, j, NULL));
                     break;
                 case ptVideoFrame:
-                    retObjValue = VideoFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL))->GetProxyObject();
+                    retObjValue =
+                        VideoFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL))->GetProxyObject();
                     break;
                 case ptAudioFrame:
-                    // retObjValue = AudioFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j, NULL))->GetProxyObject();
+                    // retObjValue = AudioFrame::CreateInstance(this, vsapi->mapGetFrame(vsmap, retKey, j,
+                    // NULL))->GetProxyObject();
                     break;
                 case ptFunction:
                     // retObjValue = JSFunction::CreateInstance(env, vsapi->mapGetFunction(vsmap, retKey, index, NULL))
                     break;
-
             }
 
             if (shouldFlatten && numKeys == 1) {
@@ -518,8 +529,14 @@ Napi::Object Register(Napi::Env env, Napi::Object exports) {
 }
 
 bool NapiIsInteger(Napi::Env &env, Napi::Value &value) {
-  return env.Global().Get("Number").ToObject().Get("isInteger").As<Napi::Function>().Call({ value }).ToBoolean().Value();
+    return env.Global()
+        .Get("Number")
+        .ToObject()
+        .Get("isInteger")
+        .As<Napi::Function>()
+        .Call({ value })
+        .ToBoolean()
+        .Value();
 }
-
 
 NODE_API_MODULE(NODE_GYP_MODULE_NAME, Register);

@@ -1,9 +1,7 @@
 #include "rawnode.hpp"
 
 Napi::Object RawNode::Init(Napi::Env env, Napi::Object exports) {
-    Napi::Function func = DefineClass(env, "RawNode", {
-        InstanceAccessor<&RawNode::GetCore>("core")
-    });
+    Napi::Function func = DefineClass(env, "RawNode", { InstanceAccessor<&RawNode::GetCore>("core") });
 
     constructor = new Napi::FunctionReference();
     *constructor = Napi::Persistent(func);
@@ -13,7 +11,8 @@ Napi::Object RawNode::Init(Napi::Env env, Napi::Object exports) {
     return exports;
 }
 
-RawNode::RawNode(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RawNode>(info) {}
+RawNode::RawNode(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RawNode>(info) {
+}
 
 RawNode *RawNode::SetInstance(Core *core, VSNode *vsnode) {
     this->core = core;

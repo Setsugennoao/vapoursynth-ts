@@ -3,16 +3,19 @@
 #include <string>
 
 Napi::Object Function::Init(Napi::Env env, Napi::Object exports) {
-    Napi::Function func = DefineClass(env, "Function", {
-        InstanceAccessor<&Function::GetCore>("core"),
-        InstanceAccessor<&Function::GetPlugin>("plugin"),
-        InstanceMethod<&Function::Call>("Call"),
-        InstanceMethod<&Function::IsVideoInjectable>("isVideoInjectable"),
-        InstanceMethod<&Function::IsAudioInjectable>("isAudioInjectable"),
-        InstanceAccessor<&Function::GetName>("name"),
-        InstanceAccessor<&Function::GetSignature>("signature"),
-        InstanceAccessor<&Function::GetReturnType>("returnType"),
-    });
+    Napi::Function func = DefineClass(
+        env, "Function",
+        {
+            InstanceAccessor<&Function::GetCore>("core"),
+            InstanceAccessor<&Function::GetPlugin>("plugin"),
+            InstanceMethod<&Function::Call>("Call"),
+            InstanceMethod<&Function::IsVideoInjectable>("isVideoInjectable"),
+            InstanceMethod<&Function::IsAudioInjectable>("isAudioInjectable"),
+            InstanceAccessor<&Function::GetName>("name"),
+            InstanceAccessor<&Function::GetSignature>("signature"),
+            InstanceAccessor<&Function::GetReturnType>("returnType"),
+        }
+    );
 
     constructor = new Napi::FunctionReference();
     *constructor = Napi::Persistent(func);
@@ -22,7 +25,8 @@ Napi::Object Function::Init(Napi::Env env, Napi::Object exports) {
     return exports;
 }
 
-Function::Function(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Function>(info) {}
+Function::Function(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Function>(info) {
+}
 
 Function *Function::SetInstance(Core *core, Plugin *plugin, VSPluginFunction *vsfunction) {
     this->core = core;
@@ -37,12 +41,13 @@ Napi::Object Function::CreateInstance(Core *core, Plugin *plugin, VSPluginFuncti
 }
 
 Napi::Object Function::GetProxyObject() {
-    return core->proxyFunctions->Get("Function").As<Napi::Function>().Call({this->Value()}).As<Napi::Object>();
+    return core->proxyFunctions->Get("Function").As<Napi::Function>().Call({ this->Value() }).As<Napi::Object>();
 }
 
 Napi::FunctionReference *Function::constructor;
 
-Function::~Function() {}
+Function::~Function() {
+}
 
 const char *Function::getName() {
     return core->vsapi->getPluginFunctionName(vsfunction);
@@ -62,13 +67,15 @@ Napi::Value Function::GetReturnType(const Napi::CallbackInfo &info) {
 
 Napi::Value Function::IsVideoInjectable(const Napi::CallbackInfo &info) {
     return Napi::Boolean::From(
-        info.Env(), std::string{core->vsapi->getPluginFunctionArguments(vsfunction)}.find(":vnode") != std::string::npos
+        info.Env(),
+        std::string { core->vsapi->getPluginFunctionArguments(vsfunction) }.find(":vnode") != std::string::npos
     );
 }
 
 Napi::Value Function::IsAudioInjectable(const Napi::CallbackInfo &info) {
     return Napi::Boolean::From(
-        info.Env(), std::string{core->vsapi->getPluginFunctionArguments(vsfunction)}.find(":anode") != std::string::npos
+        info.Env(),
+        std::string { core->vsapi->getPluginFunctionArguments(vsfunction) }.find(":anode") != std::string::npos
     );
 }
 
@@ -85,9 +92,9 @@ Napi::Value Function::Call(const Napi::CallbackInfo &info) {
         VSMap *outmap = core->vsapi->invoke(plugin->vsplugin, getName(), inmap);
         core->vsapi->freeMap(inmap);
 
-        const char *error{core->vsapi->mapGetError(outmap)};
+        const char *error { core->vsapi->mapGetError(outmap) };
         if (error) {
-            std::string errorString{error};
+            std::string errorString { error };
             core->vsapi->freeMap(outmap);
             throw Napi::Error::New(env, errorString);
         }
@@ -96,7 +103,7 @@ Napi::Value Function::Call(const Napi::CallbackInfo &info) {
         core->vsapi->freeMap(outmap);
 
         return returnValue;
-    } catch(Napi::Error err) {
+    } catch (Napi::Error err) {
         err.ThrowAsJavaScriptException();
     }
 
