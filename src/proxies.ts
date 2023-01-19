@@ -237,8 +237,32 @@ const VideoNodeProxy = (node: VideoNodeIP) =>
 const FunctionProxy = (func: FunctionIP) =>
     createProxy(
         function (...args: any[]) {
+            let funcArguments = {}
+
+            const argNames = func.signature.split(';').map((x) => x.split(':')[0])
+
+            if (args && args.length) {
+                if (typeof args[args.length - 1] === 'object') {
+                    funcArguments = args[args.length - 1]
+                    args = args.slice(0, -1)
+                }
+
+                const posKeyVal = args.map((val, i, _arr) => [argNames[i], val])
+
+                const positional = Object.fromEntries(posKeyVal)
+
+                funcArguments = Object.assign(funcArguments, positional)
+            }
+
+            funcArguments = Object.fromEntries(
+                Object.entries(funcArguments).map(([key, value]) => [
+                    key.endsWith('_') ? key.substring(0, key.length - 1) : key,
+                    value,
+                ])
+            )
+
             try {
-                return func.Call(...args)
+                return func.Call(funcArguments)
             } catch (e: any) {
                 throw e
             }
