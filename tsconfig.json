@@ -1,15 +1,12 @@
 {
     "compilerOptions": {
         "moduleResolution": "node",
-        "module": "CommonJS",
-        "target": "ES5",
+        "module": "NodeNext",
+        "target": "ESNext",
         "lib": ["ES2021"],
         "strict": true,
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
-        "jsx": "react",
-        "sourceMap": true,
-        "stripInternal": true,
         "declaration": true,
         "declarationMap": true,
         "declarationDir": "dist/esm5/types",
@@ -24,9 +21,6 @@
             "./node_modules/@types",
             "./src/types"
         ],
-        "downlevelIteration": true,
-        "incremental": true,
-        "tsBuildInfoFile": ".tsbuildinfo",
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true
     },
