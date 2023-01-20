@@ -1,45 +1,53 @@
 import { getAttributes } from './utils'
 
-class Core {
-    [k: string]: any
-
+export class BasePP {
     constructor(obj: any) {
-        Object.assign(this, getAttributes(obj, ['version', 'numThreads', 'maxCacheSize']))
+        this.update(obj)
+    }
+
+    update(obj: any) {
+        //Object.assign(this, getAttributes(obj, []))
+        return this
     }
 }
 
-class Plugin {
+class Core extends BasePP {
     [k: string]: any
 
-    constructor(obj: any) {
-        Object.assign(this, getAttributes(obj, ['namespace', 'description', ...obj.functions]))
+    update(obj: any) {
+        return Object.assign(this, getAttributes(obj, ['version', 'numThreads', 'maxCacheSize']))
     }
 }
 
-class Function {
+class Plugin extends BasePP {
     [k: string]: any
 
-    constructor(obj: any) {
-        Object.assign(this, getAttributes(obj, ['namespace', 'description', ...obj.functions]))
+    update(obj: any) {
+        return Object.assign(this, getAttributes(obj, ['namespace', 'description', ...obj.functions]))
     }
 }
 
-class VideoNode {
+class Function extends BasePP {
     [k: string]: any
 
-    constructor(obj: any) {
+    update(obj: any) {
+        return Object.assign(this, getAttributes(obj, ['namespace', 'description', ...obj.functions]))
+    }
+}
+
+class VideoNode extends BasePP {
+    [k: string]: any
+
+    update(obj: any) {
         Object.assign(this, getAttributes(obj, ['numFrames']))
         for (const key of ['format', 'width', 'height', 'fps']) {
             this[key] = obj[key] || 'dynamic'
         }
+        return this
     }
 }
 
-class AudioNode {
-    constructor(obj: any) {
-        //Object.assign(this, getAttributes(obj, []))
-    }
-}
+class AudioNode extends BasePP {}
 
 export {
     Core as CorePP,
