@@ -29,11 +29,12 @@ const nativeFunctionProxy = (func: any, target: any, key: any) =>
 const createProxy = (objtowrap: any, cppobj: any, values: any): any => {
     let instance: any
 
-    const wrapper: any = Object.assign(
+    const wrapper: { __PP: typeof BasePP; [k: string | symbol]: any } = Object.assign(
         {
             __self: cppobj,
             __printInstance: undefined,
-            __setPrintInstance: () => wrapper.__printInstance ?? (wrapper.__printInstance = new wrapper.__PP(instance)),
+            __setPrintInstance: () =>
+                wrapper.__printInstance?.update(instance) ?? (wrapper.__printInstance = new wrapper.__PP(instance)),
         },
         values
     )
