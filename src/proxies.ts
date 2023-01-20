@@ -1,9 +1,19 @@
 import util from 'util'
 
-import { CorePP, PluginPP, VideoNodePP } from './classes'
+import { BasePP, CorePP, PluginPP, VideoFramePP, VideoNodePP } from './classes'
 import { Fraction } from './fractions'
 import {
-    AudioNodeIP, Core, CoreIP, FunctionIP, Int, PluginIP, PyScript, stubs, VideoNode, VideoNodeIP
+    AudioNodeIP,
+    Core,
+    CoreIP,
+    FunctionIP,
+    Int,
+    PluginIP,
+    PyScript,
+    stubs,
+    VideoFrameIP,
+    VideoNode,
+    VideoNodeIP,
 } from './types/core'
 import { VideoFrame } from './types/core.d'
 import { getAttributes, parseSliceString, range } from './utils'
@@ -67,6 +77,17 @@ const createProxy = (objtowrap: any, cppobj: any, values: any): any => {
 
     return instance
 }
+
+const VideoFrameProxy = (frame: VideoFrameIP) =>
+    createProxy(frame, frame, {
+        __PP: VideoFramePP,
+        __getter: (name: keyof stubs.OnlyPluginsNodeProxyI) => {
+            console.log(name)
+        },
+        // get fps() {
+        //     return new Fraction(frame.fps.numerator, frame.fps.denominator)
+        // },
+    })
 
 const VideoNodeProxy = (node: VideoNodeIP) =>
     createProxy(node, node, {
@@ -316,7 +337,7 @@ export const CoreProxy: (flags?: Int, core?: CoreIP) => Core = (
         FramePropsEditable: (obj) => obj,
         VideoFormat: (obj) => obj.toObject(),
         VideoNode: VideoNodeProxy,
-        VideoFrame: (obj) => obj,
+        VideoFrame: VideoFrameProxy,
         VideoFrameEditable: (obj) => obj,
         AudioFormat: (obj) => obj,
         AudioNode: (obj) => obj,

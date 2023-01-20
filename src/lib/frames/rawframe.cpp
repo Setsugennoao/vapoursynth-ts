@@ -72,7 +72,7 @@ Napi::Value RawFrame::GetCore(const Napi::CallbackInfo &info) {
 }
 
 Napi::Value RawFrame::GetProps(const Napi::CallbackInfo &info) {
-    ensureOpen(info);
+    // ensureOpen(info);
     // return FrameProps::CreateFrameProps(vsframe);
     return Napi::Object::Object({});
 }

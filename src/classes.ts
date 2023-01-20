@@ -47,6 +47,18 @@ class VideoNode extends BasePP {
     }
 }
 
+class VideoFrame extends BasePP {
+    [k: string]: any
+
+    update(obj: any) {
+        Object.assign(this, getAttributes(obj, ['props', 'flags', 'readonly', 'closed']))
+        for (const key of ['width', 'height', 'format']) {
+            this[key] = obj[key] || 'dynamic'
+        }
+        return this
+    }
+}
+
 class AudioNode extends BasePP {}
 
 export {
@@ -55,4 +67,5 @@ export {
     Function as FunctionPP,
     VideoNode as VideoNodePP,
     AudioNode as AudioNodePP,
+    VideoFrame as VideoFramePP,
 }

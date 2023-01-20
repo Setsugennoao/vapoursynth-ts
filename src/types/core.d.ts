@@ -1,7 +1,7 @@
 import { WriteStream } from 'fs'
 import util from 'util'
 
-import { AudioNodePP, CorePP, FunctionPP, PluginPP, VideoNodePP } from '../classes'
+import { AudioNodePP, CorePP, FunctionPP, PluginPP, VideoFramePP, VideoNodePP } from '../classes'
 import { ColorFamily, PresetFormat, SampleType } from '../constants'
 import { Fraction } from '../fractions'
 import { stubs } from './core.plugins'
@@ -137,6 +137,17 @@ interface AudioNodeIPP extends AudioNodeI {
 }
 
 export type AudioNodeIP = AudioNodeIPP & AudioNodeStaticAttributes
+
+interface VideoFrameIPP extends Omit<VideoFrameI, 'fps'> {
+    core: CoreIP
+    fps: {
+        numerator: Int
+        denominator: Int
+    }
+    prettyPrint: typeof VideoFramePP
+    staticAttributes: VideoFrameStaticAttributes
+}
+export type VideoFrameIP = VideoFrameIPP & VideoFrameCppAttributes
 
 export interface CoreIP extends Core {
     new (coreCreationFlags: Int, proxies: { [k: string]: (...args: any[]) => any }): CoreIP
