@@ -21,6 +21,7 @@ class RawFrame : public Napi::ObjectWrap<RawFrame> {
     Napi::Value GetProps(const Napi::CallbackInfo &);
     Napi::Value GetFlags(const Napi::CallbackInfo &);
 
+    void _CloseFrame();
     void CloseFrame(const Napi::CallbackInfo &);
     Napi::Value GetIsClosed(const Napi::CallbackInfo &);
     Napi::Value GetIsReadOnly(const Napi::CallbackInfo &);

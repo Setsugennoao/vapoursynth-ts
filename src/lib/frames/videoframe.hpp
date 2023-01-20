@@ -34,7 +34,9 @@ class VideoFrame : public Napi::ObjectWrap<VideoFrame> {
     Napi::Value GetProps(const Napi::CallbackInfo &);
     Napi::Value GetFlags(const Napi::CallbackInfo &);
 
-    void CloseFrame(const Napi::CallbackInfo &);
+    void CloseFrame(const Napi::CallbackInfo &info) {
+        this->rawframe->CloseFrame(info);
+    };
     Napi::Value GetIsClosed(const Napi::CallbackInfo &);
     Napi::Value GetIsReadOnly(const Napi::CallbackInfo &);
 };

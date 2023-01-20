@@ -27,6 +27,10 @@ Napi::Object VideoFrame::Init(Napi::Env env, Napi::Object exports) {
 
 VideoFrame::VideoFrame(const Napi::CallbackInfo &info) : Napi::ObjectWrap<VideoFrame>(info) {}
 
+VideoFrame::~VideoFrame() {
+    this->rawframe->~RawFrame();
+}
+
 Napi::Object VideoFrame::GetProxyObject() {
     return rawframe->core->proxyFunctions->Get(
         rawframe->constvsframe ? "VideoFrame" : "VideoFrameEditable"
@@ -62,10 +66,6 @@ VideoFrame *VideoFrame::CreateInstance(Core *core, const VSFrame *constvsframe) 
 }
 
 Napi::FunctionReference *VideoFrame::constructor;
-
-VideoFrame::~VideoFrame() {
-    rawframe->~RawFrame();
-}
 
 Napi::Value VideoFrame::GetWidth(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
@@ -119,8 +119,4 @@ Napi::Value VideoFrame::GetIsClosed(const Napi::CallbackInfo &info) {
 
 Napi::Value VideoFrame::GetIsReadOnly(const Napi::CallbackInfo &info) {
     return rawframe->GetIsReadOnly(info);
-}
-
-void VideoFrame::CloseFrame(const Napi::CallbackInfo &info) {
-    this->~VideoFrame();
 }

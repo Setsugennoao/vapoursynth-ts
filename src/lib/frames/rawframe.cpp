@@ -58,14 +58,7 @@ RawFrame *RawFrame::CreateInstance(Core *core, const VSFrame *constvsframe, VSFr
 Napi::FunctionReference *RawFrame::constructor;
 
 RawFrame::~RawFrame() {
-    if (constvsframe) {
-        core->vsapi->freeFrame(constvsframe);
-    }
-    if (vsframe) {
-        core->vsapi->freeFrame(vsframe);
-    }
-    constvsframe = nullptr;
-    vsframe = nullptr;
+    this->_CloseFrame();
 }
 
 void RawFrame::ensureOpen(const Napi::CallbackInfo &info) {
@@ -96,6 +89,17 @@ Napi::Value RawFrame::GetIsReadOnly(const Napi::CallbackInfo &info) {
     return Napi::Boolean::From(info.Env(), !(bool)(flags & 1));
 }
 
+void RawFrame::_CloseFrame() {
+    if (constvsframe) {
+        core->vsapi->freeFrame(constvsframe);
+    }
+    if (vsframe) {
+        core->vsapi->freeFrame(vsframe);
+    }
+    constvsframe = nullptr;
+    vsframe = nullptr;
+}
+
 void RawFrame::CloseFrame(const Napi::CallbackInfo &info) {
-    this->~RawFrame();
+    this->_CloseFrame();
 }
