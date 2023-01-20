@@ -41,5 +41,3 @@ class VideoNode: public Napi::ObjectWrap<VideoNode> {
         Napi::Value GetFrame(const Napi::CallbackInfo &);
         Napi::Value GetFrameAsync(const Napi::CallbackInfo &);
 };
-
-void VideoFrameWorkerCallback(void *userData, const VSFrame *f, int n, VSNode *node, const char *errorMsg);

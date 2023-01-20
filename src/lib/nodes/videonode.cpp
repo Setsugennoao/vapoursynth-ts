@@ -10,63 +10,49 @@
 class VideoFrameWorker: public Napi::AsyncWorker {
     public:
         VideoFrameWorker(VideoNode *vnode, int32_t frameNumber) :
-            Napi::AsyncWorker(vnode->Env()), vnode(vnode), vsapi(vnode->rawnode->core->vsapi), frameNumber(frameNumber),
-            deferred(Napi::Promise::Deferred::New(vnode->Env())),
-            videoframe(VideoFrame::CreateInstance(vnode->rawnode->core, (VSFrame *) nullptr)) {
+            Napi::AsyncWorker(vnode->Env()), vnode(vnode), frameNumber(frameNumber),
+            deferred(Napi::Promise::Deferred::New(vnode->Env())) {
         }
         ~VideoFrameWorker() {
         }
 
         void Execute() {
+            std::promise<const VSFrame *> promise;
+            std::future<const VSFrame *> future = promise.get_future();
+
             vnode->rawnode->core->vsapi->getFrameAsync(
-                frameNumber, vnode->rawnode->vsnode, VideoFrameWorkerCallback, (void *) this
+                frameNumber, vnode->rawnode->vsnode,
+                [](void *userData, const VSFrame *f, int n, VSNode *node, const char *errorMsg) {
+                    auto promise { static_cast<std::promise<const VSFrame *> *>(userData) };
+
+                    if (f) {
+                        promise->set_value(f);
+                    } else {
+                        promise->set_exception(std::make_exception_ptr(std::runtime_error(errorMsg)));
+                    }
+                },
+                (void *) &std::move(promise)
             );
-            this->future = promise.get_future();
+
+            future.wait();
+
+            vsframePtr = future.get();
         }
 
         void OnOK() {
-            deferred.Resolve(videoframe->SetInstance(videoframe->core, this->future.get())->GetProxyObject());
+            deferred.Resolve(VideoFrame::CreateInstance(vnode->rawnode->core, vsframePtr)->GetProxyObject());
         }
 
         void OnError(const Napi::Error &error) {
             deferred.Reject(error.Value());
         }
 
-        Napi::Promise GetPromise() {
-            return deferred.Promise();
-        }
-
-        void SetVSError(const std::string &error) {
-            this->SetError(error);
-        }
-
-    protected:
-        std::vector<napi_value> GetResult(Napi::Env env) {
-            return { env.Null(), videoframe->GetProxyObject() };
-        }
-
     public:
-        std::promise<const VSFrame *> promise;
-        std::future<const VSFrame *> future;
-
         VideoNode *vnode;
-        const VSAPI *vsapi;
         int32_t frameNumber;
-        VideoFrame *videoframe;
+        const VSFrame *vsframePtr;
         Napi::Promise::Deferred deferred;
 };
-
-void VideoFrameWorkerCallback(void *userData, const VSFrame *f, int n, VSNode *node, const char *errorMsg) {
-    auto worker { static_cast<VideoFrameWorker *>(userData) };
-
-    worker->promise.set_value(f);
-
-    if (!f) {
-        std::ostringstream ss;
-        ss << "Encountered error getting frame " << worker->frameNumber << ": " << errorMsg;
-        return worker->SetVSError(ss.str());
-    }
-}
 
 /**********************************************************************************************************************/
 
@@ -265,7 +251,7 @@ Napi::Value VideoNode::GetFrameAsync(const Napi::CallbackInfo &info) {
 
     worker->Queue();
 
-    return worker->GetPromise();
+    return worker->deferred.Promise();
 }
 
 Napi::Value VideoNode::GetCore(const Napi::CallbackInfo &info) {
